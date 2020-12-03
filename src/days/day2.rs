@@ -1,6 +1,7 @@
 use std::num::ParseIntError;
 use std::ops::Try;
 use std::str::FromStr;
+use std::time::Instant;
 
 struct Requirement {
     char: char,
@@ -56,25 +57,20 @@ impl FromStr for Entry {
 
 impl Entry {
     fn valid(&self) -> bool {
-        let mut seen = 0;
-        for char in self.password.chars() {
-            if char == self.req.char {
-                seen += 1;
-            }
-        }
-
+        let seen = self
+            .password
+            .chars()
+            .filter(|&c| c == self.req.char)
+            .count();
         return seen >= self.req.min && seen <= self.req.max;
     }
     fn alt_valid(&self) -> bool {
-        let chars = self.password.chars().collect::<Vec<_>>();
-        let first_contains =
-            self.req.min < self.password.len() + 1 && chars[self.req.min - 1] == self.req.char;
-        let second_valid = self.req.max < self.password.len() + 1;
-        if second_valid {
-            let second_contains = chars[self.req.max - 1] == self.req.char;
-            first_contains ^ second_contains
-        } else {
-            first_contains
+        match self.password.chars().nth(self.req.min - 1) {
+            Some(first) => match self.password.chars().nth(self.req.max - 1) {
+                Some(second) => (first == self.req.char) ^ (second == self.req.char),
+                None => first == self.req.char,
+            },
+            None => false,
         }
     }
 }
@@ -82,13 +78,11 @@ impl Entry {
 fn load_entries() -> Vec<Entry> {
     let contents = std::fs::read_to_string("files/02.txt").expect("should be there");
 
-    let mut res = Vec::new();
-
-    for line in contents.trim().lines() {
-        res.push(line.parse().expect("should be valid input"));
-    }
-
-    res
+    contents
+        .trim()
+        .lines()
+        .map(|line| line.parse().expect("should be valid input"))
+        .collect()
 }
 
 fn part1(entries: &Vec<Entry>) -> usize {
@@ -100,14 +94,15 @@ fn part2(entries: &Vec<Entry>) -> usize {
 }
 
 pub fn run() {
-    let start = std::time::Instant::now();
+    let start = Instant::now();
     let entries = load_entries();
-    let data_loaded = std::time::Instant::now();
+    let data_loaded = Instant::now();
     let p1 = part1(&entries);
-    let done_part1 = std::time::Instant::now();
+    let done_part1 = Instant::now();
     let p2 = part2(&entries);
-    let done_part2 = std::time::Instant::now();
+    let done_part2 = Instant::now();
 
+    println!("--------------------");
     println!("day 2");
     println!("    part 1: {}", p1);
     println!("    part 2: {}", p2);

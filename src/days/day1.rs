@@ -1,11 +1,13 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
+use std::time::Instant;
 
 const GOAL: i64 = 2020;
 
 fn load_numbers() -> Vec<i64> {
     std::fs::read_to_string("files/01.txt")
         .expect("should be file")
+        .trim()
         .lines()
         .map(|i| i.parse().expect("should be valid int"))
         .collect()
@@ -29,41 +31,46 @@ fn part1(nums: &Vec<i64>) -> i64 {
 fn part2(nums: &Vec<i64>) -> i64 {
     let min = nums.first().expect("more than 0 items");
     let cache: HashMap<i64, (i64, i64)> = (0..nums.len())
-        .flat_map(|i| ((i + 1)..nums.len()).map(move |j| (i, j)))
-        .filter_map(|(i, j)| {
-            let i = nums[i];
-            let j = nums[j];
-            if i + j + min < GOAL {
-                Some((i + j, (i, j)))
+        .flat_map(|i| {
+            ((i + 1)..nums.len()).filter_map(move |j| {
+                let i = nums[i];
+                let j = nums[j];
+                if i + j + min < GOAL {
+                    Some((i + j, (i, j)))
+                } else {
+                    None
+                }
+            })
+        })
+        .collect();
+
+    nums.iter()
+        .filter_map(|&k| {
+            let diff = GOAL - k;
+            if let Some((i, j)) = cache.get(&diff) {
+                return Some(i * j * k);
             } else {
                 None
             }
         })
-        .collect();
-
-    for &num in nums {
-        let diff = GOAL - num;
-        if let Some((i, j)) = cache.get(&diff) {
-            return i * j * num;
-        }
-    }
-
-    panic!("please work")
+        .next()
+        .expect("should have a value")
 }
 
 pub fn run() {
-    let start = std::time::Instant::now();
+    let start = Instant::now();
     let nums = {
         let mut n = load_numbers();
         n.sort();
         n
     };
-    let data_loaded = std::time::Instant::now();
+    let data_loaded = Instant::now();
     let p1 = part1(&nums);
-    let done_part1 = std::time::Instant::now();
+    let done_part1 = Instant::now();
     let p2 = part2(&nums);
-    let done_part2 = std::time::Instant::now();
+    let done_part2 = Instant::now();
 
+    println!("--------------------");
     println!("day 1");
     println!("    part 1: {}", p1);
     println!("    part 2: {}", p2);
