@@ -46,3 +46,20 @@ pub fn run() {
     println!("    part 1: {:?}", done_part1.duration_since(data_loaded));
     println!("    part 2: {:?}", done_part2.duration_since(done_part1));
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn part1_test() {
+        let trees = load_trees();
+        assert_eq!(part1(&trees, 3, 1), 205)
+    }
+
+    #[test]
+    fn part2_test() {
+        let trees = load_trees();
+        assert_eq!(part2(&trees), 3952146825)
+    }
+}

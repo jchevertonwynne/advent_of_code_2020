@@ -28,7 +28,8 @@ fn part1(nums: &Vec<usize>) -> usize {
 }
 
 fn part2(nums: &Vec<usize>) -> usize {
-    let max_needed = GOAL - (nums[0] + nums[1]);
+    let smallest = nums[0] + nums[1];
+    let max_needed = GOAL - smallest;
     let top = match nums.binary_search_by(|&i| i.cmp(&max_needed)) {
         Ok(i) => i,
         Err(i) => i,
@@ -48,6 +49,7 @@ fn part2(nums: &Vec<usize>) -> usize {
 
     nums.iter()
         .filter_map(|&k| match places.get(GOAL - k) {
+            Some(&(0, 0)) => None,
             Some(&(i, j)) => Some(i * j * k),
             _ => None,
         })
@@ -77,4 +79,29 @@ pub fn run() {
     println!("    data load: {:?}", data_loaded.duration_since(start));
     println!("    part 1: {:?}", done_part1.duration_since(data_loaded));
     println!("    part 2: {:?}", done_part2.duration_since(done_part1));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn part1_test() {
+        let numbers = {
+            let mut r = load_numbers();
+            r.sort();
+            r
+        };
+        assert_eq!(part1(&numbers), 319531)
+    }
+
+    #[test]
+    fn part2_test() {
+        let numbers = {
+            let mut r = load_numbers();
+            r.sort();
+            r
+        };
+        assert_eq!(part2(&numbers), 244300320)
+    }
 }

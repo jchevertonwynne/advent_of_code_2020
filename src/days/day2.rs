@@ -68,7 +68,7 @@ impl Entry {
     fn alt_valid(&self) -> bool {
         let mut chars = self.password.chars();
         match chars.nth(self.req.min - 1) {
-            Some(first) => match chars.nth(self.req.max - self.req.min) {
+            Some(first) => match chars.nth(self.req.max - self.req.min - 1) {
                 Some(second) => (first == self.req.char) ^ (second == self.req.char),
                 None => first == self.req.char,
             },
@@ -119,7 +119,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn part2() {
+    fn part1_test() {
+        let entries = load_entries();
+        assert_eq!(part1(&entries), 483)
+    }
+
+    #[test]
+    fn part2_test() {
+        let entries = load_entries();
+        assert_eq!(part2(&entries), 482)
+    }
+
+    #[test]
+    fn part2_tests() {
         let entry: Entry = "1-3 a: abcde".parse().expect("should be valid entry");
         assert_eq!(entry.alt_valid(), true);
 
