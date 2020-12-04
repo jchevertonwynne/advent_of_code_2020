@@ -43,7 +43,7 @@ impl FromStr for Entry {
 
         let char = parts[1]
             .chars()
-            .nth(0)
+            .next()
             .into_result()
             .map_err(|_| String::from("char mustn't be 0 length"))?;
         let password = parts[2].to_string();
@@ -64,9 +64,11 @@ impl Entry {
             .count();
         return seen >= self.req.min && seen <= self.req.max;
     }
+
     fn alt_valid(&self) -> bool {
-        match self.password.chars().nth(self.req.min - 1) {
-            Some(first) => match self.password.chars().nth(self.req.max - 1) {
+        let mut chars = self.password.chars();
+        match chars.nth(self.req.min - 1) {
+            Some(first) => match chars.nth(self.req.max - self.req.min) {
                 Some(second) => (first == self.req.char) ^ (second == self.req.char),
                 None => first == self.req.char,
             },
@@ -76,9 +78,8 @@ impl Entry {
 }
 
 fn load_entries() -> Vec<Entry> {
-    let contents = std::fs::read_to_string("files/02.txt").expect("should be there");
-
-    contents
+    std::fs::read_to_string("files/02.txt")
+        .expect("should be there")
         .trim()
         .lines()
         .map(|line| line.parse().expect("should be valid input"))

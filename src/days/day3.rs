@@ -3,8 +3,8 @@ use std::time::Instant;
 type Trees = Vec<Vec<bool>>;
 
 fn load_trees() -> Trees {
-    let contents = std::fs::read_to_string("files/03.txt").expect("should be there");
-    contents
+    std::fs::read_to_string("files/03.txt")
+        .expect("should be there")
         .trim()
         .lines()
         .map(|line| line.chars().map(|c| c == '#').collect())
@@ -13,19 +13,18 @@ fn load_trees() -> Trees {
 
 fn part1(trees: &Trees, right: usize, down: usize) -> usize {
     let width = trees.first().expect("non zero entries").len();
-    (0..trees.len())
-        .step_by(down)
+    (0..trees.len() / down)
+        .map(|i| i * down)
         .zip((0..).step_by(right).map(|v| v % width))
-        .filter(|(y, x)| trees[*y][*x])
+        .filter(|&(y, x)| trees[y][x])
         .count()
 }
 
 fn part2(trees: &Trees) -> usize {
-    let options: Vec<(usize, usize)> = vec![(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)];
-    options
-        .into_iter()
-        .map(|(r, d)| part1(trees, r, d))
-        .fold(1, |a, b| a * b)
+    [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)]
+        .iter()
+        .map(|&(right, down)| part1(trees, right, down))
+        .product()
 }
 
 pub fn run() {

@@ -1,19 +1,18 @@
 use std::cmp::Ordering;
-use std::collections::HashMap;
 use std::time::Instant;
 
-const GOAL: i64 = 2020;
+const GOAL: usize = 2020;
 
-fn load_numbers() -> Vec<i64> {
+fn load_numbers() -> Vec<usize> {
     std::fs::read_to_string("files/01.txt")
         .expect("should be file")
         .trim()
         .lines()
-        .map(|i| i.parse().expect("should be valid int"))
+        .map(|i| i.parse().expect("should be valid usize"))
         .collect()
 }
 
-fn part1(nums: &Vec<i64>) -> i64 {
+fn part1(nums: &Vec<usize>) -> usize {
     let mut i = 0;
     let mut j = nums.len() - 1;
     let mut t = nums[i] + nums[j];
@@ -28,33 +27,32 @@ fn part1(nums: &Vec<i64>) -> i64 {
     }
 }
 
-fn part2(nums: &Vec<i64>) -> i64 {
-    let min = nums.first().expect("more than 0 items");
-    let cache: HashMap<i64, (i64, i64)> = (0..nums.len())
-        .flat_map(|i| {
-            ((i + 1)..nums.len()).filter_map(move |j| {
-                let i = nums[i];
-                let j = nums[j];
-                if i + j + min < GOAL {
-                    Some((i + j, (i, j)))
-                } else {
-                    None
-                }
-            })
-        })
-        .collect();
+fn part2(nums: &Vec<usize>) -> usize {
+    let max_needed = GOAL - (nums[0] + nums[1]);
+    let top = match nums.binary_search_by(|&i| i.cmp(&max_needed)) {
+        Ok(i) => i,
+        Err(i) => i,
+    };
+
+    let min = nums[0];
+    let nums = &nums[..top];
+    let mut places = [(0, 0); GOAL];
+    for (ind, &i) in nums.iter().enumerate() {
+        for &j in &nums[(ind + 1)..] {
+            if i + j + min > GOAL {
+                break;
+            }
+            places[i + j] = (i, j);
+        }
+    }
 
     nums.iter()
-        .filter_map(|&k| {
-            let diff = GOAL - k;
-            if let Some((i, j)) = cache.get(&diff) {
-                return Some(i * j * k);
-            } else {
-                None
-            }
+        .filter_map(|&k| match places.get(GOAL - k) {
+            Some(&(i, j)) => Some(i * j * k),
+            _ => None,
         })
         .next()
-        .expect("should have a value")
+        .expect("should be an answer")
 }
 
 pub fn run() {
