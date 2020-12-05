@@ -62,33 +62,25 @@ fn part1(passes: &Vec<Pass>) -> usize {
         .expect("non zero entries")
 }
 
-fn part2(passes: &Vec<Pass>, max_id: usize) -> usize {
-    let cap = max_id + 1;
-    let mut exists = vec![false; cap];
-    passes
-        .iter()
-        .map(|pass| pass.id)
-        .for_each(|id| exists[id] = true);
-
-    let mut ind = 0;
-    while !exists[ind] {
-        ind += 1;
+fn part2(passes: &Vec<Pass>) -> usize {
+    for w in passes.windows(2) {
+        let a = w[0].id;
+        let b = w[1].id;
+        if b - a != 1 {
+            return a + 1
+        }
     }
-
-    while exists[ind] {
-        ind += 1;
-    }
-
-    ind
+    panic!("lol")
 }
 
 pub fn run() {
     let start = Instant::now();
-    let passes = load_passes();
+    let mut passes = load_passes();
+    passes.sort_by(|a, b| a.id.cmp(&b.id));
     let data_loaded = Instant::now();
     let p1 = part1(&passes);
     let done_part1 = Instant::now();
-    let p2 = part2(&passes, p1);
+    let p2 = part2(&passes);
     let done_part2 = Instant::now();
 
     println!("--------------------");
@@ -115,8 +107,9 @@ mod tests {
 
     #[test]
     fn test_part2() {
-        let passes = load_passes();
-        assert_eq!(part2(&passes, part1(&passes)), 623);
+        let mut passes = load_passes();
+        passes.sort_by(|a, b| a.id.cmp(&b.id));
+        assert_eq!(part2(&passes), 623);
     }
 
     #[test]
