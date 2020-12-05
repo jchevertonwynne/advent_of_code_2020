@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-#[derive(Default, Clone, Debug)]
+#[derive(Default, Debug)]
 struct Record {
     birth_year: Option<String>,
     issue_year: Option<String>,
@@ -165,9 +165,6 @@ pub fn run() {
     println!("    part 1: {:?}", done_part1.duration_since(data_loaded));
     println!("    part 2: {:?}", done_part2.duration_since(done_part1));
 }
-
-// pid:087499704 hgt:74in ecl:grn iyr:2012 eyr:2030 byr:1980
-// hcl:#623a2f
 
 #[cfg(test)]
 mod tests {
