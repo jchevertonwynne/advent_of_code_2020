@@ -3,9 +3,7 @@ use std::time::Instant;
 type Trees = Vec<Vec<bool>>;
 
 fn load_trees() -> Trees {
-    std::fs::read_to_string("files/03.txt")
-        .expect("should be there")
-        .trim()
+    include_str!("../../files/03.txt")
         .lines()
         .map(|line| line.chars().map(|c| c == '#').collect())
         .collect()

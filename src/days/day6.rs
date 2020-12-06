@@ -1,48 +1,34 @@
-use std::collections::HashSet;
 use std::time::Instant;
-use rayon::prelude::*;
+use std::ops::{BitOr, BitAnd};
 
-type GroupResults = Vec<HashSet<char>>;
+type GroupResults = Vec<usize>;
 
 fn load_groups() -> Vec<GroupResults> {
-    std::fs::read_to_string("files/06.txt")
-        .expect("should exist")
-        .trim()
+    include_str!("../../files/06.txt")
         .split("\n\n")
-        .map(|group| group.lines().map(|line| line.chars().collect()).collect())
+        .map(|group| {
+            group
+                .lines()
+                .map(|line| {
+                    line.chars()
+                        .fold(0, |acc, c| acc | (1 << (c as usize - 'a' as usize)))
+                })
+                .collect()
+        })
         .collect()
 }
 
 fn part1(groups: &Vec<GroupResults>) -> usize {
     groups
-        .par_iter()
-        .map(|group| {
-            group
-                .iter()
-                .fold(HashSet::new(), |acc, next| {
-                    acc.union(next).map(|&c| c).collect()
-                })
-                .len()
-        })
+        .iter()
+        .map(|group| group.iter().fold(0, |acc, v| acc.bitor(v)).count_ones() as usize)
         .sum()
 }
 
 fn part2(groups: &Vec<GroupResults>) -> usize {
     groups
-        .par_iter()
-        .map(|group| {
-            let base = group
-                .iter()
-                .next()
-                .expect("at least 1 person in the group")
-                .clone();
-            group
-                .iter()
-                .fold(base, |acc, next| {
-                    acc.intersection(next).map(|&c| c).collect()
-                })
-                .len()
-        })
+        .iter()
+        .map(|group| group.iter().fold(group[0], |acc, v| acc.bitand(v)).count_ones() as usize)
         .sum()
 }
 

@@ -1,9 +1,7 @@
 use std::time::Instant;
 
 fn load_ids() -> Vec<usize> {
-    std::fs::read_to_string("files/05.txt")
-        .expect("file exists")
-        .trim()
+    include_str!("../../files/05.txt")
         .lines()
         .map(|line| {
             line.chars().fold(0, |acc, v| {

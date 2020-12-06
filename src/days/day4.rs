@@ -111,9 +111,7 @@ impl Record {
 }
 
 fn load_records() -> Vec<Record> {
-    std::fs::read_to_string("files/04.txt")
-        .expect("should exist")
-        .trim()
+    include_str!("../../files/04.txt")
         .split("\n\n")
         .map(|record| {
             let mut curr = Record::default();

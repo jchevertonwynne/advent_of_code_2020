@@ -78,9 +78,7 @@ impl Entry {
 }
 
 fn load_entries() -> Vec<Entry> {
-    std::fs::read_to_string("files/02.txt")
-        .expect("should be there")
-        .trim()
+    include_str!("../../files/02.txt")
         .lines()
         .map(|line| line.parse().expect("should be valid input"))
         .collect()

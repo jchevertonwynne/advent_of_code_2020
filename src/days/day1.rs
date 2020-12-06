@@ -4,9 +4,7 @@ use std::time::Instant;
 const GOAL: usize = 2020;
 
 fn load_numbers() -> Vec<usize> {
-    std::fs::read_to_string("files/01.txt")
-        .expect("should be file")
-        .trim()
+    include_str!("../../files/01.txt")
         .lines()
         .map(|i| i.parse().expect("should be valid usize"))
         .collect()
