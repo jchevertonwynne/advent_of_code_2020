@@ -103,8 +103,6 @@ pub fn run() {
     let p2 = part2(&entries);
     let done_part2 = Instant::now();
 
-    println!("--------------------");
-    println!("day 2");
     println!("    part 1: {}", p1);
     println!("    part 2: {}", p2);
     println!("time taken:");

@@ -1,90 +1,56 @@
 use std::time::Instant;
-use std::str::FromStr;
 
-#[derive(Debug, PartialEq)]
-struct Pass {
-    row: usize,
-    column: usize,
-    id: usize
-}
-
-impl FromStr for Pass {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.len() != 10 {
-            return Err(format!("invalid input length: was {}, expected 10", s.len()))
-        }
-
-        let row = &s[..7];
-        let column = &s[7..];
-
-        if !row.chars().all(|c| c == 'F' || c == 'B') {
-            return Err(format!("invalid row identifier {}", row));
-        }
-
-        if !column.chars().all(|c| c == 'L' || c == 'R') {
-            return Err(format!("invalid column identifier {}", row));
-        }
-
-        let row = row.chars().into_iter().fold(0, shunt('B'));
-        let column = column.chars().into_iter().fold(0, shunt('R'));
-        let id = row * 8 + column;
-
-        Ok(Pass { row, column, id })
-    }
-}
-
-fn shunt(delim: char) -> Box<dyn Fn(usize, char) -> usize> {
-    Box::new(move |mut acc, c| {
-        acc <<= 1;
-        if c == delim {
-            acc += 1;
-        }
-        acc
-    })
-}
-
-fn load_passes() -> Vec<Pass> {
+fn load_ids() -> Vec<usize> {
     std::fs::read_to_string("files/05.txt")
         .expect("file exists")
         .trim()
         .lines()
-        .map(|line| line.parse().expect("should work"))
+        .map(|line| {
+            line.chars().fold(0, |acc, v| {
+                (acc << 1)
+                    + match v {
+                        'R' | 'B' => 1,
+                        _ => 0,
+                    }
+            })
+        })
         .collect()
 }
 
-fn part1(passes: &Vec<Pass>) -> usize {
-    passes
-        .iter()
-        .map(|pass| pass.id)
-        .max()
-        .expect("non zero entries")
+fn part1(passes: &Vec<usize>) -> usize {
+    *passes.iter().max().expect("non zero entries")
 }
 
-fn part2(passes: &Vec<Pass>) -> usize {
-    for w in passes.windows(2) {
-        let a = w[0].id;
-        let b = w[1].id;
-        if b - a != 1 {
-            return a + 1
-        }
-    }
-    panic!("lol")
+fn part2(passes: &Vec<usize>) -> usize {
+    let mut smallest = usize::max_value();
+    let mut largest = 0;
+    let mut curr = 0;
+    passes.iter().for_each(|&id| {
+        smallest = usize::min(smallest, id);
+        largest = usize::max(largest, id);
+        curr ^= id;
+    });
+    let dist = largest - smallest;
+    let poss_dist = largest.next_power_of_two() - largest;
+
+    let iter: Box<dyn Iterator<Item = usize>> = match dist < poss_dist {
+        true => Box::new(smallest..=largest),
+        false => Box::new((1..smallest).chain((largest + 1)..largest.next_power_of_two())),
+    };
+
+    iter.for_each(|i| curr ^= i);
+    curr
 }
 
 pub fn run() {
     let start = Instant::now();
-    let mut passes = load_passes();
-    passes.sort_by(|a, b| a.id.cmp(&b.id));
+    let passes = load_ids();
     let data_loaded = Instant::now();
     let p1 = part1(&passes);
     let done_part1 = Instant::now();
     let p2 = part2(&passes);
     let done_part2 = Instant::now();
 
-    println!("--------------------");
-    println!("day 5");
     println!("    part 1: {}", p1);
     println!("    part 2: {}", p2);
     println!("time taken:");
@@ -94,36 +60,54 @@ pub fn run() {
     println!("    part 2: {:?}", done_part2.duration_since(done_part1));
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_part1() {
-        let passes = load_passes();
+        let passes = load_ids();
         assert_eq!(part1(&passes), 885);
     }
 
     #[test]
     fn test_part2() {
-        let mut passes = load_passes();
-        passes.sort_by(|a, b| a.id.cmp(&b.id));
+        let passes = load_ids();
         assert_eq!(part2(&passes), 623);
     }
 
     #[test]
-    fn pass_generation() {
-        let pass = "FBFBBFFRLR".parse::<Pass>().expect("valid pass");
-        assert_eq!(pass, Pass{row: 44, column: 5, id: 44 * 8 + 5});
+    fn part_2_scenarios() {
+        for i in 20..80 {
+            for start in 5..10 {
+                for end in 90..123 {
+                    let args = (start..end).filter(|&v| v != i).collect();
+                    assert_eq!(part2(&args), i);
+                }
+            }
+        }
+    }
 
-        let pass = "BFFFBBFRRR".parse::<Pass>().expect("valid pass");
-        assert_eq!(pass, Pass{row: 70, column: 7, id: 70 * 8 + 7});
+    #[test]
+    fn to_id() {
+        let acc = |acc, v| {
+            (acc << 1)
+                + match v {
+                    'R' | 'B' => 1,
+                    _ => 0,
+                }
+        };
 
-        let pass = "FFFBBBFRRR".parse::<Pass>().expect("valid pass");
-        assert_eq!(pass, Pass{row: 14, column: 7, id: 14 * 8 + 7});
+        let line = "BFFFBBFRRR";
+        let id = line.chars().fold(0, acc);
+        assert_eq!(id, 567);
 
-        let pass = "BBFFBBFRLL".parse::<Pass>().expect("valid pass");
-        assert_eq!(pass, Pass{row: 102, column: 4, id: 102 * 8 + 4});
+        let line = "FFFBBBFRRR";
+        let id = line.chars().fold(0, acc);
+        assert_eq!(id, 119);
+
+        let line = "BBFFBBFRLL";
+        let id = line.chars().fold(0, acc);
+        assert_eq!(id, 820);
     }
 }

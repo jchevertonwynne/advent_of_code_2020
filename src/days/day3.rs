@@ -36,8 +36,6 @@ pub fn run() {
     let p2 = part2(&trees);
     let done_part2 = Instant::now();
 
-    println!("--------------------");
-    println!("day 3");
     println!("    part 1: {}", p1);
     println!("    part 2: {}", p2);
     println!("time taken:");
