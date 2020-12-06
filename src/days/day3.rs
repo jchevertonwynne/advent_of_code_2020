@@ -1,6 +1,7 @@
 use std::time::Instant;
 
-type Trees = Vec<Vec<bool>>;
+type Row = Vec<bool>;
+type Trees = Vec<Row>;
 
 fn load_trees() -> Trees {
     include_str!("../../files/03.txt")
@@ -9,7 +10,7 @@ fn load_trees() -> Trees {
         .collect()
 }
 
-fn part1(trees: &Trees, right: usize, down: usize) -> usize {
+fn part1(trees: &[Row], right: usize, down: usize) -> usize {
     let width = trees.first().expect("non zero entries").len();
     (0..trees.len() / down)
         .map(|i| i * down)
@@ -18,7 +19,7 @@ fn part1(trees: &Trees, right: usize, down: usize) -> usize {
         .count()
 }
 
-fn part2(trees: &Trees) -> usize {
+fn part2(trees: &[Row]) -> usize {
     [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)]
         .iter()
         .map(|&(right, down)| part1(trees, right, down))

@@ -20,19 +20,13 @@ impl FromStr for Entry {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parts = s.split(' ').collect::<Vec<_>>();
         if parts.len() != 3 {
-            return Err(String::from(format!(
-                "{} does not have 2 separating spaces",
-                s
-            )));
+            return Err(format!("{} does not have 2 separating spaces", s));
         }
 
         let limits = parts[0];
         let lims = limits.split('-').collect::<Vec<_>>();
         if lims.len() != 2 {
-            return Err(String::from(format!(
-                "{} does not have 1 separating hyphen",
-                limits
-            )));
+            return Err(format!("{} does not have 1 separating hyphen", limits));
         }
         let min = lims[0]
             .parse()
@@ -62,7 +56,7 @@ impl Entry {
             .chars()
             .filter(|&c| c == self.req.char)
             .count();
-        return seen >= self.req.min && seen <= self.req.max;
+        seen >= self.req.min && seen <= self.req.max
     }
 
     fn alt_valid(&self) -> bool {
@@ -84,11 +78,11 @@ fn load_entries() -> Vec<Entry> {
         .collect()
 }
 
-fn part1(entries: &Vec<Entry>) -> usize {
+fn part1(entries: &[Entry]) -> usize {
     entries.iter().filter(|e| e.valid()).count()
 }
 
-fn part2(entries: &Vec<Entry>) -> usize {
+fn part2(entries: &[Entry]) -> usize {
     entries.iter().filter(|e| e.alt_valid()).count()
 }
 

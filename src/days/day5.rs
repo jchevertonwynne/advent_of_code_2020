@@ -15,11 +15,11 @@ fn load_ids() -> Vec<usize> {
         .collect()
 }
 
-fn part1(passes: &Vec<usize>) -> usize {
+fn part1(passes: &[usize]) -> usize {
     *passes.iter().max().expect("non zero entries")
 }
 
-fn part2(passes: &Vec<usize>) -> usize {
+fn part2(passes: &[usize]) -> usize {
     let mut smallest = usize::max_value();
     let mut largest = 0;
     let mut curr = 0;
@@ -79,7 +79,7 @@ mod tests {
         for i in 20..80 {
             for start in 5..10 {
                 for end in 90..123 {
-                    let args = (start..end).filter(|&v| v != i).collect();
+                    let args = (start..end).filter(|&v| v != i).collect::<Vec<_>>();
                     assert_eq!(part2(&args), i);
                 }
             }

@@ -10,7 +10,7 @@ fn load_numbers() -> Vec<usize> {
         .collect()
 }
 
-fn part1(nums: &Vec<usize>) -> usize {
+fn part1(nums: &[usize]) -> usize {
     let mut i = 0;
     let mut j = nums.len() - 1;
     let mut t = nums[i] + nums[j];
@@ -25,7 +25,7 @@ fn part1(nums: &Vec<usize>) -> usize {
     }
 }
 
-fn part2(nums: &Vec<usize>) -> usize {
+fn part2(nums: &[usize]) -> usize {
     let smallest = nums[0] + nums[1];
     let max_needed = GOAL - smallest;
     let top = match nums.binary_search_by(|&i| i.cmp(&max_needed)) {
@@ -59,7 +59,7 @@ pub fn run() {
     let start = Instant::now();
     let nums = {
         let mut n = load_numbers();
-        n.sort();
+        n.sort_unstable();
         n
     };
     let data_loaded = Instant::now();

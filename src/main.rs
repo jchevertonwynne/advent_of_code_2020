@@ -1,5 +1,4 @@
 #![feature(try_trait)]
-#![feature(iterator_fold_self)]
 
 mod days;
 

@@ -1,7 +1,8 @@
+use smallvec::SmallVec;
+use std::ops::{BitAnd, BitOr};
 use std::time::Instant;
-use std::ops::{BitOr, BitAnd};
 
-type GroupResults = Vec<usize>;
+type GroupResults = SmallVec<[usize; 5]>;
 
 fn load_groups() -> Vec<GroupResults> {
     include_str!("../../files/06.txt")
@@ -11,24 +12,30 @@ fn load_groups() -> Vec<GroupResults> {
                 .lines()
                 .map(|line| {
                     line.chars()
-                        .fold(0, |acc, c| acc | (1 << (c as usize - 'a' as usize)))
+                        .map(|c| (1 << (c as usize - 'a' as usize)))
+                        .fold(0, |acc, i| acc.bitor(i))
                 })
                 .collect()
         })
         .collect()
 }
 
-fn part1(groups: &Vec<GroupResults>) -> usize {
+fn part1(groups: &[GroupResults]) -> usize {
     groups
         .iter()
         .map(|group| group.iter().fold(0, |acc, v| acc.bitor(v)).count_ones() as usize)
         .sum()
 }
 
-fn part2(groups: &Vec<GroupResults>) -> usize {
+fn part2(groups: &[GroupResults]) -> usize {
     groups
         .iter()
-        .map(|group| group.iter().fold(group[0], |acc, v| acc.bitand(v)).count_ones() as usize)
+        .map(|group| {
+            group
+                .iter()
+                .fold(group[0], |acc, v| acc.bitand(v))
+                .count_ones() as usize
+        })
         .sum()
 }
 

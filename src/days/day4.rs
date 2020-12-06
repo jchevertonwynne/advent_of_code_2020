@@ -71,10 +71,10 @@ impl Record {
                 match unit {
                     "cm" => number_in_range(&height[..height.len() - 2], 150, 193),
                     "in" => number_in_range(&height[..height.len() - 2], 59, 76),
-                    _ => return false,
+                    _ => false,
                 }
             }
-            None => return false,
+            None => false,
         }
     }
 
@@ -85,7 +85,7 @@ impl Record {
         };
 
         let hex = &colour[1..];
-        colour.chars().nth(0) == Some('#')
+        colour.starts_with('#')
             && hex.len() == 6
             && hex
                 .chars()
@@ -94,18 +94,18 @@ impl Record {
 
     fn valid_eye_colour(&self) -> bool {
         match &self.eye_colour {
-            Some(colour) => match colour.as_str() {
-                "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth" => true,
-                _ => false,
-            },
-            None => return false,
+            Some(colour) => matches!(
+                colour.as_str(),
+                "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth"
+            ),
+            None => false,
         }
     }
 
     fn valid_passport_id(&self) -> bool {
         match &self.passport_id {
             Some(id) => id.len() == 9 && id.chars().all(|c| c >= '0' && c <= '9'),
-            None => return false,
+            None => false,
         }
     }
 }
@@ -136,11 +136,11 @@ fn load_records() -> Vec<Record> {
         .collect()
 }
 
-fn part1(records: &Vec<Record>) -> usize {
+fn part1(records: &[Record]) -> usize {
     records.iter().filter(|r| r.has_fields()).count()
 }
 
-fn part2(records: &Vec<Record>) -> usize {
+fn part2(records: &[Record]) -> usize {
     records.iter().filter(|r| r.valid_fields()).count()
 }
 
