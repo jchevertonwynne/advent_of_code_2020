@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 use std::time::Instant;
+use rayon::prelude::*;
 
 type GroupResults = Vec<HashSet<char>>;
 
@@ -14,7 +15,7 @@ fn load_groups() -> Vec<GroupResults> {
 
 fn part1(groups: &Vec<GroupResults>) -> usize {
     groups
-        .iter()
+        .par_iter()
         .map(|group| {
             group
                 .iter()
@@ -28,7 +29,7 @@ fn part1(groups: &Vec<GroupResults>) -> usize {
 
 fn part2(groups: &Vec<GroupResults>) -> usize {
     groups
-        .iter()
+        .par_iter()
         .map(|group| {
             let base = group
                 .iter()
