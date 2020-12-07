@@ -89,7 +89,7 @@ impl Record {
             && hex.len() == 6
             && hex
                 .chars()
-                .all(|c| (c >= '0' && c <= '9') || c >= 'a' && c <= 'f')
+                .all(|c| ('0'..='9').contains(&c) || ('a'..='f').contains(&c))
     }
 
     fn valid_eye_colour(&self) -> bool {
@@ -104,7 +104,7 @@ impl Record {
 
     fn valid_passport_id(&self) -> bool {
         match &self.passport_id {
-            Some(id) => id.len() == 9 && id.chars().all(|c| c >= '0' && c <= '9'),
+            Some(id) => id.len() == 9 && id.chars().all(|c| ('0'..='9').contains(&c)),
             None => false,
         }
     }
