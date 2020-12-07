@@ -35,20 +35,20 @@ fn part2(nums: &[usize]) -> usize {
 
     let min = nums[0];
     let nums = &nums[..top];
-    let mut places = [(0, 0); GOAL];
+    let mut places = [0; GOAL];
     for (ind, &i) in nums.iter().enumerate() {
         for &j in &nums[(ind + 1)..] {
             if i + j + min > GOAL {
                 break;
             }
-            places[i + j] = (i, j);
+            places[i + j] = i * j;
         }
     }
 
     nums.iter()
         .filter_map(|&k| match places.get(GOAL - k) {
-            Some(&(0, 0)) => None,
-            Some(&(i, j)) => Some(i * j * k),
+            Some(0) => None,
+            Some(ij) => Some(ij * k),
             _ => None,
         })
         .next()

@@ -3,8 +3,6 @@
 mod days;
 
 fn main() {
-    days::day7::run();
-
     let opts = [
         || days::day1::run(),
         || days::day2::run(),
@@ -25,7 +23,7 @@ fn main() {
                 }
                 match opts.get(i - 1) {
                     Some(opt) => {
-                        println!("--------------------");
+                        println!("-------------------------");
                         println!("{}", format!("day {}", i));
                         opt();
                     }

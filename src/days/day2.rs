@@ -28,6 +28,7 @@ impl FromStr for Entry {
         if lims.len() != 2 {
             return Err(format!("{} does not have 1 separating hyphen", limits));
         }
+
         let min = lims[0]
             .parse()
             .map_err(|err: ParseIntError| err.to_string())?;

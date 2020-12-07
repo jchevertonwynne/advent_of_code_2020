@@ -1,7 +1,5 @@
 use regex::Regex;
-use smallvec::alloc::collections::VecDeque;
-use std::collections::{HashMap, HashSet};
-use std::hash::Hash;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::time::Instant;
 
 const INPUT: &str = include_str!("../../files/07.txt");
@@ -12,46 +10,49 @@ struct Rule<'a> {
     count: usize,
 }
 
-type RuleSet = HashMap<&'static str, HashSet<Rule<'static>>>;
+type RuleSet<'a> = HashMap<&'a str, HashSet<Rule<'a>>>;
 
-fn load_rules() -> RuleSet {
-    let ends_extractor = Regex::new("^(.*) bags contain (.*).$").expect("valid regex");
-    let colour_matcher = Regex::new("^(\\d+) (.*) bags?$").expect("shoudl be valid regex");
+fn load_rules<'a>(input: &'a str) -> RuleSet<'a> {
+    let ends_extractor = Regex::new("^(.*) bags contain (.*).$").expect("should be valid regex");
+    let colour_matcher = Regex::new("^(\\d+) (.*) bags?$").expect("should be valid regex");
 
-    INPUT
+    input
         .lines()
         .map(|line| {
             let parts = ends_extractor
                 .captures(line)
                 .unwrap_or_else(|| panic!("valid for input {}", line));
             let colour = parts.get(1).expect("should exist").as_str();
-            let matches_with = parts.get(2).expect("should exist").as_str();
-            if matches_with == "no other bags" {
-                return (colour, HashSet::new());
-            }
+            let contained_bags = parts.get(2).expect("should exist").as_str();
 
-            let mut paired_with = HashSet::new();
+            let paired_with = match contained_bags {
+                "no other bags" => HashSet::new(),
+                _ => contained_bags
+                    .split(',')
+                    .map(|colour_string| {
+                        let colour_string = colour_string.trim();
+                        let colour_info =
+                            colour_matcher.captures(colour_string).unwrap_or_else(|| {
+                                panic!("not valid colour string: {}", colour_string)
+                            });
+                        let count = colour_info
+                            .get(1)
+                            .unwrap_or_else(|| panic!("should have count"))
+                            .as_str()
+                            .parse()
+                            .unwrap_or_else(|_| panic!("should be a valid integer"));
+                        let required_colour = colour_info
+                            .get(2)
+                            .unwrap_or_else(|| panic!("should have required colour"))
+                            .as_str();
 
-            for colour_string in matches_with.split(',') {
-                let colour_string = colour_string.trim();
-                let colour_info = colour_matcher
-                    .captures(colour_string)
-                    .unwrap_or_else(|| panic!("not valid colour string: {}", colour_string));
-                let count = colour_info
-                    .get(1)
-                    .unwrap_or_else(|| panic!("should have count"))
-                    .as_str()
-                    .parse()
-                    .unwrap_or_else(|_| panic!("should be a valid integer"));
-                let required_colour = colour_info
-                    .get(2)
-                    .unwrap_or_else(|| panic!("should have required colour"))
-                    .as_str();
-                paired_with.insert(Rule {
-                    colour: required_colour,
-                    count,
-                });
-            }
+                        Rule {
+                            colour: required_colour,
+                            count,
+                        }
+                    })
+                    .collect(),
+            };
 
             (colour, paired_with)
         })
@@ -59,7 +60,7 @@ fn load_rules() -> RuleSet {
 }
 
 fn part1(rules: &RuleSet) -> usize {
-    let mut inverse = HashMap::new();
+    let mut inverse: HashMap<&str, HashSet<&str>> = HashMap::new();
     for (colour, to_colours) in rules {
         for rule in to_colours {
             inverse
@@ -74,16 +75,13 @@ fn part1(rules: &RuleSet) -> usize {
     let mut stack: VecDeque<&str> = VecDeque::from(vec!["shiny gold"]);
 
     while let Some(colour) = stack.pop_front() {
-        match inverse.get(colour) {
-            Some(opts) => {
-                for opt in opts {
-                    if seen.insert(opt) {
-                        res += 1;
-                        stack.push_back(opt);
-                    }
+        if let Some(opts) = inverse.get(colour) {
+            for opt in opts {
+                if seen.insert(opt) {
+                    res += 1;
+                    stack.push_back(opt);
                 }
             }
-            None => continue,
         }
     }
 
@@ -105,7 +103,7 @@ fn part2(rules: &RuleSet) -> usize {
 
 pub fn run() {
     let start = Instant::now();
-    let rules = load_rules();
+    let rules = load_rules(INPUT);
     let data_loaded = Instant::now();
     let p1 = part1(&rules);
     let done_part1 = Instant::now();
@@ -119,4 +117,21 @@ pub fn run() {
     println!("    data load: {:?}", data_loaded.duration_since(start));
     println!("    part 1: {:?}", done_part1.duration_since(data_loaded));
     println!("    part 2: {:?}", done_part2.duration_since(done_part1));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_part1() {
+        let rules = load_rules(INPUT);
+        assert_eq!(part1(&rules), 332);
+    }
+
+    #[test]
+    fn test_part2() {
+        let rules = load_rules(INPUT);
+        assert_eq!(part2(&rules), 10875);
+    }
 }
