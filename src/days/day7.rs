@@ -1,4 +1,3 @@
-use regex::Regex;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::{Rc, Weak};
@@ -6,48 +5,34 @@ use std::time::Instant;
 
 const INPUT: &str = include_str!("../../files/07.txt");
 
-#[derive(Debug)]
 struct BagTree<'a> {
     nodes: HashMap<&'a str, Rc<Bag<'a>>>,
 }
 
-#[derive(Debug)]
 struct Bag<'a> {
     colour: &'a str,
     parents: RefCell<Vec<Weak<Bag<'a>>>>,
     children: RefCell<Vec<ChildBagInfo<'a>>>,
 }
 
-#[derive(Debug)]
 struct ChildBagInfo<'a> {
     count: usize,
     child: Weak<Bag<'a>>,
 }
 
-#[derive(Hash, Eq, PartialEq, Debug)]
-struct Rule<'a> {
-    colour: &'a str,
-    count: usize,
-}
-
 impl BagTree<'_> {
     fn new(input: &str) -> BagTree {
-        let ends_extractor =
-            Regex::new("^(.*) bags contain (.*).$").expect("should be valid regex");
-        let colour_matcher = Regex::new("^(\\d+) (.*) bags?$").expect("should be valid regex");
-
-        let first_colours = input
+        let first_colours: Vec<(&str, &str)> = input
             .lines()
-            .map(|rule| ends_extractor.captures(rule).expect("should match"))
+            .map(|rule| {
+                let mut parts = rule.split(" bags contain ");
+                (parts.next().expect("pls"), parts.next().expect("pls"))
+            })
             .collect::<Vec<_>>();
 
         let nodes: HashMap<&str, Rc<Bag>> = first_colours
             .iter()
-            .map(|colour_and_children| {
-                let colour = colour_and_children
-                    .get(1)
-                    .expect("should be found")
-                    .as_str();
+            .map(|&(colour, _)| {
                 (
                     colour,
                     Rc::new(Bag {
@@ -59,58 +44,46 @@ impl BagTree<'_> {
             })
             .collect();
 
-        for colour_and_children in first_colours {
-            let children = colour_and_children
-                .get(2)
-                .expect("shoud have found children")
-                .as_str();
-
-            if children == "no other bags" {
+        for (colour, children) in first_colours {
+            if children == "no other bags." {
                 continue;
             }
 
-            let children: Vec<(usize, &str)> = children
+            let parent = nodes.get(colour).expect("should be found");
+
+            let children = children
                 .split(',')
                 .map(|line| {
                     let line = line.trim();
-                    let colour_info = colour_matcher.captures(line).expect("should match");
-                    let count = colour_info
-                        .get(1)
-                        .expect("should contain count")
-                        .as_str()
-                        .parse::<usize>()
-                        .expect("should be valid number");
-                    let colour = colour_info.get(2).expect("should contain colour").as_str();
-                    (count, colour)
-                })
-                .collect();
+                    let line = match line.strip_suffix('.') {
+                        Some(line) => line,
+                        None => line
+                    };
 
-            let colour = colour_and_children
-                .get(1)
-                .expect("should be found")
-                .as_str();
-            let parent = nodes.get(colour).expect("should be found");
+                    let count_ind = line.chars().take_while(|c| ('0'..='9').contains(c)).count();
+                    let count = line[..count_ind].parse::<usize>().expect("parse pls");
 
-            for (_, child) in &children {
-                let entry = nodes.get(child).expect("should be put in");
-                entry.parents.borrow_mut().push(Rc::downgrade(parent));
-            }
+                    let colour = if count == 1 {
+                        &line[count_ind + 1..line.len() - 4]
+                    } else {
+                        &line[count_ind + 1..line.len() - 5]
+                    };
 
-            let children_info = children
-                .iter()
-                .map(|(count, child)| {
-                    let child = nodes.get(child).expect("should be put in");
+                    let child = nodes.get(colour).expect("should be put in");
+                    child.parents.borrow_mut().push(Rc::downgrade(parent));
+
                     ChildBagInfo {
-                        count: *count,
+                        count,
                         child: Rc::downgrade(child),
                     }
-                })
-                .collect();
+                });
+
             nodes
                 .get(colour)
                 .expect("should be put in")
                 .children
-                .replace(children_info);
+                .borrow_mut()
+                .extend(children);
         }
 
         BagTree { nodes }
@@ -137,11 +110,11 @@ impl<'c> Bag<'c> {
             .sum()
     }
 
-    fn contains(&self) -> usize {
+    fn children(&self) -> usize {
         self.children
             .borrow()
             .iter()
-            .map(|c| c.count + (c.count * c.child.upgrade().expect("pls upgrade").contains()))
+            .map(|c| c.count + (c.count * c.child.upgrade().expect("pls upgrade").children()))
             .sum::<usize>()
     }
 }
@@ -157,7 +130,7 @@ fn part2(tree: &BagTree) -> usize {
     tree.nodes
         .get("shiny gold")
         .expect("should exist")
-        .contains()
+        .children()
 }
 
 pub fn run() {
