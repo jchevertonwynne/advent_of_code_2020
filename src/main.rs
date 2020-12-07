@@ -3,6 +3,8 @@
 mod days;
 
 fn main() {
+    days::day7::run();
+
     let opts = [
         || days::day1::run(),
         || days::day2::run(),
@@ -10,6 +12,7 @@ fn main() {
         || days::day4::run(),
         || days::day5::run(),
         || days::day6::run(),
+        || days::day7::run(),
     ];
 
     let args = std::env::args().skip(1).collect::<Vec<_>>();
