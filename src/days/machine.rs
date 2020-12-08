@@ -4,14 +4,14 @@ use std::str::FromStr;
 enum Instruction {
     Acc(i64),
     Jmp(i64),
-    Nop(i64)
+    Nop(i64),
 }
 
 #[derive(Clone)]
 pub struct Machine {
     i: i64,
     instructions: Vec<Instruction>,
-    acc: i64
+    acc: i64,
 }
 
 impl FromStr for Instruction {
@@ -19,19 +19,19 @@ impl FromStr for Instruction {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.len() < 5 {
-            return Err("input too short".to_string())
+            return Err("input too short".to_string());
         }
         let num = &s[3..].trim();
-        let num = match num.strip_prefix('+') {
-            Some(n) => n,
-            None => num
+        let i = num[1..].parse::<i64>().map_err(|err| err.to_string())?;
+        let i = match num.starts_with('+') {
+            true => i,
+            false => -i
         };
-        let i = num.parse::<i64>().map_err(|err| err.to_string())?;
         match &s[..3] {
             "nop" => Ok(Instruction::Nop(i)),
             "acc" => Ok(Instruction::Acc(i)),
             "jmp" => Ok(Instruction::Jmp(i)),
-            _ => Err("invalid instruction".to_string())
+            _ => Err("invalid instruction".to_string()),
         }
     }
 }
@@ -47,7 +47,7 @@ impl FromStr for Machine {
         Ok(Machine {
             i: 0,
             instructions,
-            acc: 0
+            acc: 0,
         })
     }
 }
@@ -65,7 +65,7 @@ impl Machine {
         self.instructions[swap] = match self.instructions[swap] {
             Instruction::Jmp(a) => Instruction::Nop(a),
             Instruction::Nop(a) => Instruction::Jmp(a),
-            Instruction::Acc(_) => return false
+            Instruction::Acc(_) => return false,
         };
         true
     }
@@ -78,12 +78,12 @@ impl Machine {
         loop {
             self.iterate();
             if self.i >= self.instructions.len() as i64 {
-                return false
+                return false;
             }
 
             seen[self.i as usize] += 1;
             if seen[self.i as usize] == 2 {
-                return true
+                return true;
             }
         }
     }
@@ -95,7 +95,7 @@ impl Machine {
                 self.i += 1;
             }
             Instruction::Jmp(i) => self.i += i,
-            Instruction::Nop(_) => self.i += 1
+            Instruction::Nop(_) => self.i += 1,
         }
     }
 }

@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
+use std::ptr::slice_from_raw_parts;
 use std::rc::{Rc, Weak};
 use std::time::Instant;
 
@@ -20,13 +21,33 @@ struct ChildBagInfo<'a> {
     child: Weak<Bag<'a>>,
 }
 
+unsafe fn combine_name_parts<'a>(a: &'a str, b: &'a str) -> &'a str {
+    let s = slice_from_raw_parts(a.as_ptr(), a.len() + b.len() + 1);
+    std::str::from_utf8(&*s).expect("you were literally just strings")
+}
+
+unsafe fn get_rest_of_string<'a>(full: &'a str, start: &'a str) -> &'a str {
+    let full_p = full.as_ptr();
+    let base_p = start.as_ptr();
+    let seen = base_p as usize - full_p as usize;
+    let s = slice_from_raw_parts(base_p, full.len() - seen - 1);
+    std::str::from_utf8_unchecked(&*s)
+}
+
 impl BagTree<'_> {
     fn new(input: &str) -> BagTree {
         let colour_and_children: Vec<(&str, &str)> = input
             .lines()
             .map(|rule| {
-                let mut parts = rule.split(" bags contain ");
-                (parts.next().expect("pls"), parts.next().expect("pls"))
+                let mut parts = rule.split(' ');
+                let quality = parts.next().expect("be a thing");
+                let colour = parts.next().expect("be a thing");
+                let colour = unsafe { combine_name_parts(quality, colour) };
+                parts.next();
+                parts.next();
+                let start = parts.next().expect("be a thing");
+                let res = unsafe { get_rest_of_string(rule, start) };
+                (colour, res)
             })
             .collect::<Vec<_>>();
 
@@ -44,40 +65,42 @@ impl BagTree<'_> {
             })
             .collect::<HashMap<_, _>>();
 
-        colour_and_children.into_iter().for_each(|(colour, children)| {
-            if children == "no other bags." {
-                return;
-            }
-
-            let parent = nodes.get(colour).expect("should be found");
-
-            let children = children.split(',').map(|line| {
-                let line = line.trim();
-                let line = match line.strip_suffix('.') {
-                    Some(line) => line,
-                    None => line,
-                };
-
-                let count_ind = line.chars().take_while(|c| ('0'..='9').contains(c)).count();
-                let count = line[..count_ind].parse::<usize>().expect("parse pls");
-
-                let colour = if count == 1 {
-                    &line[count_ind + 1..line.len() - 4]
-                } else {
-                    &line[count_ind + 1..line.len() - 5]
-                };
-
-                let child = nodes.get(colour).expect("should be put in");
-                child.parents.borrow_mut().push(Rc::downgrade(parent));
-
-                ChildBagInfo {
-                    count,
-                    child: Rc::downgrade(child),
+        colour_and_children
+            .into_iter()
+            .for_each(|(colour, children)| {
+                if children == "no other bags" {
+                    return;
                 }
-            });
 
-            parent.children.borrow_mut().extend(children);
-        });
+                let parent = nodes.get(colour).expect("should be found");
+
+                let children = children.split(", ").map(|line| {
+                    let mut words = line.split(' ');
+                    let count = words
+                        .next()
+                        .expect("be a thing")
+                        .parse::<usize>()
+                        .expect("parse pls");
+                    let quality = words.next().expect("be a thing");
+                    let colour = words.next().expect("be a thing");
+                    let colour = unsafe { combine_name_parts(quality, colour) };
+                    let child = nodes
+                        .get(colour)
+                        .expect("should be put in");
+
+                    child
+                        .parents
+                        .borrow_mut()
+                        .push(Rc::downgrade(parent));
+
+                    ChildBagInfo {
+                        count,
+                        child: Rc::downgrade(child),
+                    }
+                });
+
+                parent.children.borrow_mut().extend(children);
+            });
 
         BagTree { nodes }
     }

@@ -1,4 +1,3 @@
-use std::cmp::Ordering;
 use std::time::Instant;
 
 const GOAL: usize = 2020;
@@ -11,35 +10,23 @@ fn load_numbers() -> Vec<usize> {
 }
 
 fn part1(nums: &[usize]) -> usize {
-    let mut i = 0;
-    let mut j = nums.len() - 1;
-    let mut t = nums[i] + nums[j];
-
-    loop {
-        match t.cmp(&GOAL) {
-            Ordering::Less => i += 1,
-            Ordering::Equal => return nums[i] * nums[j],
-            Ordering::Greater => j -= 1,
+    let mut seen = [0usize; GOAL / 64 + 1];
+    for &num in nums {
+        let short = GOAL - num;
+        if seen[short / 64] & (1 << (short % 64)) != 0 {
+            return num * short
         }
-        t = nums[i] + nums[j];
+        seen[num / 64] |= 1 << (num % 64);
     }
+    panic!("lol")
 }
 
 fn part2(nums: &[usize]) -> usize {
-    let smallest = nums[0] + nums[1];
-    let max_needed = GOAL - smallest;
-    let top = match nums.binary_search_by(|&i| i.cmp(&max_needed)) {
-        Ok(i) => i,
-        Err(i) => i,
-    };
-
-    let min = nums[0];
-    let nums = &nums[..top];
     let mut places = [0; GOAL];
     for (ind, &i) in nums.iter().enumerate() {
         for &j in &nums[(ind + 1)..] {
-            if i + j + min > GOAL {
-                break;
+            if i + j >= GOAL {
+                continue
             }
             places[i + j] = i * j;
         }
@@ -57,11 +44,8 @@ fn part2(nums: &[usize]) -> usize {
 
 pub fn run() {
     let start = Instant::now();
-    let nums = {
-        let mut n = load_numbers();
-        n.sort_unstable();
-        n
-    };
+    let nums = load_numbers();
+
     let data_loaded = Instant::now();
     let p1 = part1(&nums);
     let done_part1 = Instant::now();
@@ -83,21 +67,13 @@ mod tests {
 
     #[test]
     fn part1_test() {
-        let numbers = {
-            let mut r = load_numbers();
-            r.sort();
-            r
-        };
+        let numbers = load_numbers();
         assert_eq!(part1(&numbers), 319531)
     }
 
     #[test]
     fn part2_test() {
-        let numbers = {
-            let mut r = load_numbers();
-            r.sort();
-            r
-        };
+        let numbers= load_numbers();
         assert_eq!(part2(&numbers), 244300320)
     }
 }

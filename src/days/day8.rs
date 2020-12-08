@@ -1,6 +1,6 @@
-use std::time::Instant;
-use rayon::prelude::*;
 use crate::days::machine::Machine;
+use rayon::prelude::*;
+use std::time::Instant;
 
 const INPUT: &str = include_str!("../../files/08.txt");
 
@@ -15,11 +15,11 @@ fn part2(machine: Machine) -> i64 {
         .find_map_any(|r| {
             let mut m = machine.clone();
             if !m.swap_ins(r) {
-                return None
+                return None;
             }
             match m.run_to_cycle() {
                 false => Some(m.acc()),
-                true => None
+                true => None,
             }
         })
         .expect("one solution")

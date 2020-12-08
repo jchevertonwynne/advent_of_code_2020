@@ -18,12 +18,9 @@ impl FromStr for Entry {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let parts = s.split(' ').collect::<Vec<_>>();
-        if parts.len() != 3 {
-            return Err(format!("{} does not have 2 separating spaces", s));
-        }
+        let mut parts = s.split(' ');
 
-        let limits = parts[0];
+        let limits = parts.next().ok_or("pls be a thing")?;
         let lims = limits.split('-').collect::<Vec<_>>();
         if lims.len() != 2 {
             return Err(format!("{} does not have 1 separating hyphen", limits));
@@ -36,12 +33,12 @@ impl FromStr for Entry {
             .parse()
             .map_err(|err: ParseIntError| err.to_string())?;
 
-        let char = parts[1]
+        let char = parts.next().ok_or("pls be a thing")?
             .chars()
             .next()
             .into_result()
             .map_err(|_| String::from("char mustn't be 0 length"))?;
-        let password = parts[2].to_string();
+        let password = parts.next().ok_or("pls be a thing")?.to_string();
 
         Ok(Entry {
             req: Requirement { char, min, max },
