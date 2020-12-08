@@ -1,5 +1,7 @@
 #![feature(try_trait)]
 
+use std::time::Instant;
+
 mod days;
 
 fn main() {
@@ -11,10 +13,12 @@ fn main() {
         || days::day5::run(),
         || days::day6::run(),
         || days::day7::run(),
+        || days::day8::run(),
     ];
 
     let args = std::env::args().skip(1).collect::<Vec<_>>();
 
+    let start = Instant::now();
     for arg in args {
         match arg.parse::<usize>() {
             Ok(i) => {
@@ -33,4 +37,6 @@ fn main() {
             _ => println!("illegal arg: {}", arg),
         }
     }
+    let end = Instant::now();
+    println!("{:?}", end - start);
 }

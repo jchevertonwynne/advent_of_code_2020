@@ -22,7 +22,7 @@ struct ChildBagInfo<'a> {
 
 impl BagTree<'_> {
     fn new(input: &str) -> BagTree {
-        let first_colours: Vec<(&str, &str)> = input
+        let colour_and_children: Vec<(&str, &str)> = input
             .lines()
             .map(|rule| {
                 let mut parts = rule.split(" bags contain ");
@@ -30,7 +30,7 @@ impl BagTree<'_> {
             })
             .collect::<Vec<_>>();
 
-        let nodes: HashMap<&str, Rc<Bag>> = first_colours
+        let nodes = colour_and_children
             .iter()
             .map(|&(colour, _)| {
                 (
@@ -42,49 +42,42 @@ impl BagTree<'_> {
                     }),
                 )
             })
-            .collect();
+            .collect::<HashMap<_, _>>();
 
-        for (colour, children) in first_colours {
+        colour_and_children.into_iter().for_each(|(colour, children)| {
             if children == "no other bags." {
-                continue;
+                return;
             }
 
             let parent = nodes.get(colour).expect("should be found");
 
-            let children = children
-                .split(',')
-                .map(|line| {
-                    let line = line.trim();
-                    let line = match line.strip_suffix('.') {
-                        Some(line) => line,
-                        None => line
-                    };
+            let children = children.split(',').map(|line| {
+                let line = line.trim();
+                let line = match line.strip_suffix('.') {
+                    Some(line) => line,
+                    None => line,
+                };
 
-                    let count_ind = line.chars().take_while(|c| ('0'..='9').contains(c)).count();
-                    let count = line[..count_ind].parse::<usize>().expect("parse pls");
+                let count_ind = line.chars().take_while(|c| ('0'..='9').contains(c)).count();
+                let count = line[..count_ind].parse::<usize>().expect("parse pls");
 
-                    let colour = if count == 1 {
-                        &line[count_ind + 1..line.len() - 4]
-                    } else {
-                        &line[count_ind + 1..line.len() - 5]
-                    };
+                let colour = if count == 1 {
+                    &line[count_ind + 1..line.len() - 4]
+                } else {
+                    &line[count_ind + 1..line.len() - 5]
+                };
 
-                    let child = nodes.get(colour).expect("should be put in");
-                    child.parents.borrow_mut().push(Rc::downgrade(parent));
+                let child = nodes.get(colour).expect("should be put in");
+                child.parents.borrow_mut().push(Rc::downgrade(parent));
 
-                    ChildBagInfo {
-                        count,
-                        child: Rc::downgrade(child),
-                    }
-                });
+                ChildBagInfo {
+                    count,
+                    child: Rc::downgrade(child),
+                }
+            });
 
-            nodes
-                .get(colour)
-                .expect("should be put in")
-                .children
-                .borrow_mut()
-                .extend(children);
-        }
+            parent.children.borrow_mut().extend(children);
+        });
 
         BagTree { nodes }
     }
