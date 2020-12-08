@@ -14,12 +14,9 @@ fn part2(machine: Machine) -> i64 {
         .into_par_iter()
         .find_map_any(|r| {
             let mut m = machine.clone();
-            if !m.swap_ins(r) {
-                return None;
-            }
-            match m.run_to_cycle() {
-                false => Some(m.acc()),
+            match m.swap_ins(r) && m.run_to_cycle() {
                 true => None,
+                false => Some(m.acc()),
             }
         })
         .expect("one solution")

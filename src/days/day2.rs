@@ -1,7 +1,9 @@
-use std::num::ParseIntError;
 use std::ops::Try;
-use std::str::FromStr;
 use std::time::Instant;
+use std::convert::TryFrom;
+use core::str::Split;
+
+const INPUT: &str = include_str!("../../files/02.txt");
 
 struct Requirement {
     char: char,
@@ -9,36 +11,36 @@ struct Requirement {
     max: usize,
 }
 
-struct Entry {
+struct Entry<'a> {
     req: Requirement,
-    password: String,
+    password: &'a [u8],
 }
 
-impl FromStr for Entry {
-    type Err = String;
+fn get_next_int(eat: &mut Split<char>) -> Result<usize, String> {
+    match eat.next() {
+        Some(v) => v,
+        None => return Err("not enough values found".to_string())
+    }.parse::<usize>().map_err(|err| err.to_string())
+}
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+impl <'a> TryFrom<&'a str> for Entry<'a> {
+    type Error = String;
+
+    fn try_from(s: &'a str) -> Result<Self, Self::Error> {
         let mut parts = s.split(' ');
 
         let limits = parts.next().ok_or("pls be a thing")?;
-        let lims = limits.split('-').collect::<Vec<_>>();
-        if lims.len() != 2 {
-            return Err(format!("{} does not have 1 separating hyphen", limits));
-        }
+        let mut limits = limits.split('-');
 
-        let min = lims[0]
-            .parse()
-            .map_err(|err: ParseIntError| err.to_string())?;
-        let max = lims[1]
-            .parse()
-            .map_err(|err: ParseIntError| err.to_string())?;
+        let min = get_next_int(&mut limits)?;
+        let max = get_next_int(&mut limits)?;
 
         let char = parts.next().ok_or("pls be a thing")?
             .chars()
             .next()
             .into_result()
-            .map_err(|_| String::from("char mustn't be 0 length"))?;
-        let password = parts.next().ok_or("pls be a thing")?.to_string();
+            .map_err(|_| "char mustn't be 0 length".to_string())?;
+        let password = parts.next().ok_or("pls be a thing")?.as_ref();
 
         Ok(Entry {
             req: Requirement { char, min, max },
@@ -47,59 +49,51 @@ impl FromStr for Entry {
     }
 }
 
-impl Entry {
+impl Entry<'_> {
     fn valid(&self) -> bool {
         let seen = self
             .password
-            .chars()
-            .filter(|&c| c == self.req.char)
+            .iter()
+            .filter(|&&c| c == self.req.char as u8)
             .count();
         seen >= self.req.min && seen <= self.req.max
     }
 
     fn alt_valid(&self) -> bool {
-        let mut chars = self.password.chars();
-        match chars.nth(self.req.min - 1) {
-            Some(first) => match chars.nth(self.req.max - self.req.min - 1) {
-                Some(second) => (first == self.req.char) ^ (second == self.req.char),
-                None => first == self.req.char,
-            },
-            None => false,
+        match self.password.get(self.req.min - 1) {
+            Some(&first) => match self.password.get(self.req.max - 1) {
+                Some(&second) => (first == self.req.char as u8) ^ (second == self.req.char as u8),
+                None => first == self.req.char as u8
+            }
+            None => false
         }
     }
 }
 
-fn load_entries() -> Vec<Entry> {
-    include_str!("../../files/02.txt")
+fn solve(input: &str) -> (usize, usize) {
+    input
         .lines()
-        .map(|line| line.parse().expect("should be valid input"))
-        .collect()
-}
-
-fn part1(entries: &[Entry]) -> usize {
-    entries.iter().filter(|e| e.valid()).count()
-}
-
-fn part2(entries: &[Entry]) -> usize {
-    entries.iter().filter(|e| e.alt_valid()).count()
+        .map(|line| Entry::try_from(line).expect("should be valid input"))
+        .map(|entry| (entry.valid(), entry.alt_valid()))
+        .fold((0, 0), |(a, b), status| {
+            match status {
+                (true, true) => (a + 1, b + 1),
+                (true, false) => (a + 1, b),
+                (false, true) => (a, b + 1),
+                (false, false) => (a, b),
+            }
+        })
 }
 
 pub fn run() {
     let start = Instant::now();
-    let entries = load_entries();
-    let data_loaded = Instant::now();
-    let p1 = part1(&entries);
-    let done_part1 = Instant::now();
-    let p2 = part2(&entries);
-    let done_part2 = Instant::now();
+    let (p1, p2) = solve(INPUT);
+    let end = Instant::now();
 
     println!("    part 1: {}", p1);
     println!("    part 2: {}", p2);
     println!("time taken:");
-    println!("    total: {:?}", done_part2.duration_since(start));
-    println!("    data load: {:?}", data_loaded.duration_since(start));
-    println!("    part 1: {:?}", done_part1.duration_since(data_loaded));
-    println!("    part 2: {:?}", done_part2.duration_since(done_part1));
+    println!("    total: {:?}", end.duration_since(start));
 }
 
 #[cfg(test)]
@@ -107,29 +101,22 @@ mod tests {
     use super::*;
 
     #[test]
-    fn part1_test() {
-        let entries = load_entries();
-        assert_eq!(part1(&entries), 483)
-    }
-
-    #[test]
-    fn part2_test() {
-        let entries = load_entries();
-        assert_eq!(part2(&entries), 482)
+    fn parts_test() {
+        assert_eq!(solve(INPUT), (483, 482))
     }
 
     #[test]
     fn part2_tests() {
-        let entry: Entry = "1-3 a: abcde".parse().expect("should be valid entry");
+        let entry = Entry::try_from("1-3 a: abcde").expect("should be valid entry");
         assert_eq!(entry.alt_valid(), true);
 
-        let entry: Entry = "1-3 a: zbade".parse().expect("should be valid entry");
+        let entry = Entry::try_from("1-3 a: zbade").expect("should be valid entry");
         assert_eq!(entry.alt_valid(), true);
 
-        let entry: Entry = "1-3 b: cdefg".parse().expect("should be valid entry");
+        let entry = Entry::try_from("1-3 b: cdefg").expect("should be valid entry");
         assert_eq!(entry.alt_valid(), false);
 
-        let entry: Entry = "2-9 c: ccccccccc".parse().expect("should be valid entry");
+        let entry = Entry::try_from("2-9 c: ccccccccc").expect("should be valid entry");
         assert_eq!(entry.alt_valid(), false)
     }
 }

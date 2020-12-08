@@ -1,15 +1,17 @@
 use std::time::Instant;
 
+const INPUT: &str = include_str!("../../files/04.txt");
+
 #[derive(Default, Debug)]
-struct Record {
-    birth_year: Option<String>,
-    issue_year: Option<String>,
-    expiration_year: Option<String>,
-    height: Option<String>,
-    hair_colour: Option<String>,
-    eye_colour: Option<String>,
-    passport_id: Option<String>,
-    country_id: Option<String>,
+struct Record<'a> {
+    birth_year: Option<&'a str>,
+    issue_year: Option<&'a str>,
+    expiration_year: Option<&'a str>,
+    height: Option<&'a str>,
+    hair_colour: Option<&'a str>,
+    eye_colour: Option<&'a str>,
+    passport_id: Option<&'a str>,
+    country_id: Option<&'a str>,
 }
 
 fn number_in_range(year: &str, min_year: usize, max_year: usize) -> bool {
@@ -19,7 +21,7 @@ fn number_in_range(year: &str, min_year: usize, max_year: usize) -> bool {
     }
 }
 
-impl Record {
+impl Record<'_> {
     fn has_fields(&self) -> bool {
         self.birth_year.is_some()
             && self.issue_year.is_some()
@@ -95,8 +97,8 @@ impl Record {
     fn valid_eye_colour(&self) -> bool {
         match &self.eye_colour {
             Some(colour) => matches!(
-                colour.as_str(),
-                "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth"
+                colour,
+                &"amb" | &"blu" | &"brn" | &"gry" | &"grn" | &"hzl" | &"oth"
             ),
             None => false,
         }
@@ -110,14 +112,14 @@ impl Record {
     }
 }
 
-fn load_records() -> Vec<Record> {
-    include_str!("../../files/04.txt")
+fn load_records(input: &str) -> Vec<Record> {
+    input
         .split("\n\n")
         .map(|record| {
             let mut curr = Record::default();
             for line in record.lines() {
                 for characteristic in line.split(' ') {
-                    let status = Some(characteristic[4..].to_string());
+                    let status = Some(&characteristic[4..]);
                     match &characteristic[..3] {
                         "byr" => curr.birth_year = status,
                         "iyr" => curr.issue_year = status,
@@ -146,7 +148,7 @@ fn part2(records: &[Record]) -> usize {
 
 pub fn run() {
     let start = Instant::now();
-    let records = load_records();
+    let records = load_records(INPUT);
     let data_loaded = Instant::now();
     let p1 = part1(&records);
     let done_part1 = Instant::now();
@@ -168,26 +170,26 @@ mod tests {
 
     #[test]
     fn part1_test() {
-        let records = load_records();
+        let records = load_records(INPUT);
         assert_eq!(part1(&records), 228)
     }
 
     #[test]
     fn part2_test() {
-        let records = load_records();
+        let records = load_records(INPUT);
         assert_eq!(part2(&records), 175)
     }
 
     #[test]
     fn part2_tests() {
         let mut record = Record::default();
-        record.passport_id = Some("087499704".to_string());
-        record.height = Some("74in".to_string());
-        record.eye_colour = Some("grn".to_string());
-        record.issue_year = Some("2012".to_string());
-        record.expiration_year = Some("2030".to_string());
-        record.birth_year = Some("1980".to_string());
-        record.hair_colour = Some("#623a2f".to_string());
+        record.passport_id = Some("087499704");
+        record.height = Some("74in");
+        record.eye_colour = Some("grn");
+        record.issue_year = Some("2012");
+        record.expiration_year = Some("2030");
+        record.birth_year = Some("1980");
+        record.hair_colour = Some("#623a2f");
 
         assert_eq!(record.valid_fields(), true)
     }

@@ -49,21 +49,18 @@ impl BagTree<'_> {
                 let res = unsafe { get_rest_of_string(rule, start) };
                 (colour, res)
             })
-            .collect::<Vec<_>>();
+            .collect();
 
-        let nodes = colour_and_children
+        let mut nodes = HashMap::with_capacity(colour_and_children.len());
+        colour_and_children
             .iter()
-            .map(|&(colour, _)| {
-                (
+            .for_each(|&(colour, _)| {
+                nodes.insert(colour, Rc::new(Bag {
                     colour,
-                    Rc::new(Bag {
-                        colour,
-                        parents: RefCell::new(vec![]),
-                        children: RefCell::new(vec![]),
-                    }),
-                )
-            })
-            .collect::<HashMap<_, _>>();
+                    parents: RefCell::new(Vec::new()),
+                    children: RefCell::new(Vec::new()),
+                }));
+            });
 
         colour_and_children
             .into_iter()
