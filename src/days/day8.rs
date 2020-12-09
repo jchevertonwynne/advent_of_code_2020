@@ -1,25 +1,20 @@
 use crate::days::machine::Machine;
-use rayon::prelude::*;
 use std::time::Instant;
 
 const INPUT: &str = include_str!("../../files/08.txt");
 
-fn part1(mut machine: Machine) -> i64 {
+fn part1(machine: &mut Machine) -> i64 {
     machine.run_to_cycle();
     machine.acc()
 }
 
-fn part2(machine: Machine) -> i64 {
+fn part2(machine: &mut Machine) -> i64 {
     (0..machine.ins_count())
-        .into_par_iter()
-        .find_map_any(|r| {
-            let mut m = machine.clone();
-            if !m.swap_ins(r) {
-                return None;
-            }
-            match m.run_to_cycle() {
-                true => None,
-                false => Some(m.acc()),
+        .find_map(|r| {
+            machine.reset();
+            match machine.swap_ins(r) && !machine.run_to_cycle() {
+                true => Some(machine.acc()),
+                false => None,
             }
         })
         .expect("one solution")
@@ -27,11 +22,11 @@ fn part2(machine: Machine) -> i64 {
 
 pub fn run() {
     let start = Instant::now();
-    let machine = INPUT.parse::<Machine>().expect("please be a machine");
+    let mut machine = INPUT.parse::<Machine>().expect("please be a machine");
     let data_loaded = Instant::now();
-    let p1 = part1(machine.clone());
+    let p1 = part1(&mut machine);
     let done_part1 = Instant::now();
-    let p2 = part2(machine);
+    let p2 = part2(&mut machine);
     let done_part2 = Instant::now();
 
     println!("    part 1: {}", p1);
@@ -50,8 +45,9 @@ mod test {
 
     #[test]
     fn test_parts() {
-        let machine = INPUT.parse::<Machine>().expect("please be a machine");
-        assert_eq!(part1(machine.clone()), 1671);
-        assert_eq!(part2(machine.clone()), 892);
+        let mut machine = INPUT.parse::<Machine>().expect("please be a machine");
+        assert_eq!(part1(&mut machine), 1671);
+        machine.reset();
+        assert_eq!(part2(&mut machine), 892);
     }
 }

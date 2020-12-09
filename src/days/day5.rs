@@ -1,61 +1,51 @@
 use std::time::Instant;
 
-fn load_ids() -> Vec<usize> {
-    include_str!("../../files/05.txt")
+const INPUT: &str = include_str!("../../files/05.txt");
+
+fn solve(input: &str) -> (usize, usize) {
+    let mut p1 = 0;
+    let mut p2 = 0;
+    let mut smallest = usize::max_value();
+    let mut largest = usize::min_value();
+    input
         .lines()
         .map(|line| {
             line.chars().fold(0, |acc, v| {
                 (acc << 1)
                     + match v {
-                        'R' | 'B' => 1,
-                        _ => 0,
-                    }
+                    'R' | 'B' => 1,
+                    _ => 0,
+                }
             })
-        })
-        .collect()
-}
-
-fn part1(passes: &[usize]) -> usize {
-    *passes.iter().max().expect("non zero entries")
-}
-
-fn part2(passes: &[usize]) -> usize {
-    let mut smallest = usize::max_value();
-    let mut largest = 0;
-    let mut curr = 0;
-    passes.iter().for_each(|&id| {
-        smallest = usize::min(smallest, id);
-        largest = usize::max(largest, id);
-        curr ^= id;
+        }).for_each(|i| {
+        p1 = p1.max(i);
+        p2 ^= i;
+        smallest = usize::min(smallest, i);
+        largest = usize::max(largest, i);
     });
+
     let dist = largest - smallest;
     let poss_dist = largest.next_power_of_two() - largest;
 
-    let iter: Box<dyn Iterator<Item = usize>> = match dist < poss_dist {
-        true => Box::new(smallest..=largest),
-        false => Box::new((1..smallest).chain((largest + 1)..largest.next_power_of_two())),
-    };
+    if dist > poss_dist {
+        (1..smallest).for_each(|i| p2 ^= i);
+        ((largest + 1)..largest.next_power_of_two()).for_each(|i| p2 ^= i);
+    } else {
+        (smallest..=largest).for_each(|i| p2 ^= i);
+    }
 
-    iter.for_each(|i| curr ^= i);
-    curr
+    (p1, p2)
 }
 
 pub fn run() {
     let start = Instant::now();
-    let passes = load_ids();
-    let data_loaded = Instant::now();
-    let p1 = part1(&passes);
-    let done_part1 = Instant::now();
-    let p2 = part2(&passes);
-    let done_part2 = Instant::now();
+    let (p1, p2) = solve(INPUT);
+    let end = Instant::now();
 
     println!("    part 1: {}", p1);
     println!("    part 2: {}", p2);
     println!("time taken:");
-    println!("    total: {:?}", done_part2.duration_since(start));
-    println!("    data load: {:?}", data_loaded.duration_since(start));
-    println!("    part 1: {:?}", done_part1.duration_since(data_loaded));
-    println!("    part 2: {:?}", done_part2.duration_since(done_part1));
+    println!("    total: {:?}", end.duration_since(start));
 }
 
 #[cfg(test)]

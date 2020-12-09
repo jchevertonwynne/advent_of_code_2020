@@ -112,7 +112,7 @@ impl Record<'_> {
     }
 }
 
-fn load_records(input: &str) -> Vec<Record> {
+fn solve(input: &str) -> (usize, usize) {
     input
         .split("\n\n")
         .map(|record| {
@@ -135,33 +135,25 @@ fn load_records(input: &str) -> Vec<Record> {
             }
             curr
         })
-        .collect()
-}
-
-fn part1(records: &[Record]) -> usize {
-    records.iter().filter(|r| r.has_fields()).count()
-}
-
-fn part2(records: &[Record]) -> usize {
-    records.iter().filter(|r| r.valid_fields()).count()
+        .map(|record| match record.has_fields() {
+            false => (0, 0),
+            true => match record.valid_fields() {
+                true => (1, 1),
+                false => (1, 0),
+            },
+        })
+        .fold((0, 0), |(a, b), (c, d)| (a + c, b + d))
 }
 
 pub fn run() {
     let start = Instant::now();
-    let records = load_records(INPUT);
-    let data_loaded = Instant::now();
-    let p1 = part1(&records);
-    let done_part1 = Instant::now();
-    let p2 = part2(&records);
-    let done_part2 = Instant::now();
+    let (p1, p2) = solve(INPUT);
+    let end = Instant::now();
 
     println!("    part 1: {}", p1);
     println!("    part 2: {}", p2);
     println!("time taken:");
-    println!("    total: {:?}", done_part2.duration_since(start));
-    println!("    data load: {:?}", data_loaded.duration_since(start));
-    println!("    part 1: {:?}", done_part1.duration_since(data_loaded));
-    println!("    part 2: {:?}", done_part2.duration_since(done_part1));
+    println!("    total: {:?}", end.duration_since(start));
 }
 
 #[cfg(test)]
@@ -169,15 +161,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn part1_test() {
-        let records = load_records(INPUT);
-        assert_eq!(part1(&records), 228)
-    }
-
-    #[test]
-    fn part2_test() {
-        let records = load_records(INPUT);
-        assert_eq!(part2(&records), 175)
+    fn parts_test() {
+        assert_eq!(solve(INPUT), (228, 175));
     }
 
     #[test]

@@ -8,5 +8,5 @@ edition = "2018"
 
 [dependencies]
 bytecount = "0.6.2"
-rayon = "1.5.0"
 smallvec = "1.5.1"
+petgraph = "0.5.1"

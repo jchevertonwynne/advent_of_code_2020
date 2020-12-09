@@ -1,6 +1,5 @@
 use core::str::Split;
 use std::convert::TryFrom;
-use std::ops::Try;
 use std::time::Instant;
 
 const INPUT: &str = include_str!("../../files/02.txt");
@@ -16,8 +15,8 @@ struct Entry<'a> {
     password: &'a [u8],
 }
 
-fn get_next_int(eat: &mut Split<char>) -> Result<usize, String> {
-    match eat.next() {
+fn get_next_int(source: &mut Split<char>) -> Result<usize, String> {
+    match source.next() {
         Some(v) => v,
         None => return Err("not enough values found".to_string()),
     }
@@ -42,8 +41,7 @@ impl<'a> TryFrom<&'a str> for Entry<'a> {
             .ok_or("pls be a thing")?
             .chars()
             .next()
-            .into_result()
-            .map_err(|_| "char mustn't be 0 length".to_string())?;
+            .ok_or_else(|| "char mustn't be 0 length".to_string())?;
         let password = parts.next().ok_or("pls be a thing")?.as_ref();
 
         Ok(Entry {

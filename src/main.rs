@@ -1,5 +1,3 @@
-#![feature(try_trait)]
-
 use std::time::Instant;
 
 mod days;

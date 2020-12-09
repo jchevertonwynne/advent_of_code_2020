@@ -6,24 +6,23 @@ fn load_numbers(input: &str) -> Vec<usize> {
     input
         .lines()
         .map(|n| {
-            n.parse()
+            n.parse::<usize>()
                 .expect("input must be list of integers, one per line")
-        })
-        .collect()
+        }).collect()
 }
 
 fn part1(nums: &[usize], check: usize) -> usize {
-    for window in nums.windows(check + 1) {
-        let checking = window[check];
-        let window = &window[..check];
+    for window_and_goal in nums.windows(check + 1) {
+        let goal = window_and_goal[check];
+        let window = &window_and_goal[..check];
 
         let has_match = window
             .iter()
             .enumerate()
-            .any(|(i, a)| window[i + 1..].iter().any(|b| a + b == checking));
+            .any(|(i, a)| window[i + 1..].iter().any(|b| a + b == goal));
 
         if !has_match {
-            return checking;
+            return goal;
         }
     }
 
@@ -40,11 +39,10 @@ fn part2(nums: &[usize], goal: usize) -> usize {
                 break;
             }
             if sum == goal {
-                let (smallest, largest) = nums[i..j]
-                    .iter()
-                    .fold((usize::max_value(), usize::min_value()), |(a, b), &v| {
-                        (a.min(v), b.min(v))
-                    });
+                let (smallest, largest) = nums[i..=j].iter().fold(
+                    (usize::max_value(), usize::min_value()),
+                    |(low, high), &v| (low.min(v), high.max(v)),
+                );
                 return smallest + largest;
             }
         }

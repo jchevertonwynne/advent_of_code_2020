@@ -12,6 +12,7 @@ pub struct Machine {
     i: i64,
     instructions: Vec<Instruction>,
     acc: i64,
+    swapped: Option<(Instruction, usize)>,
 }
 
 impl FromStr for Instruction {
@@ -48,6 +49,7 @@ impl FromStr for Machine {
             i: 0,
             instructions,
             acc: 0,
+            swapped: None,
         })
     }
 }
@@ -61,12 +63,24 @@ impl Machine {
         self.instructions.len()
     }
 
-    pub fn swap_ins(&mut self, swap: usize) -> bool {
-        self.instructions[swap] = match self.instructions[swap] {
+    pub fn reset(&mut self) {
+        self.acc = 0;
+        self.i = 0;
+        let mut replace: Option<(Instruction, usize)> = None;
+        std::mem::swap(&mut replace, &mut self.swapped);
+        if let Some((ins, i)) = replace {
+            self.instructions[i] = ins;
+        }
+    }
+
+    pub fn swap_ins(&mut self, ind: usize) -> bool {
+        let mut new_ins = match self.instructions[ind] {
             Instruction::Jmp(a) => Instruction::Nop(a),
             Instruction::Nop(a) => Instruction::Jmp(a),
             Instruction::Acc(_) => return false,
         };
+        std::mem::swap(&mut new_ins, &mut self.instructions[ind]);
+        self.swapped = Some((new_ins, ind));
         true
     }
 
