@@ -14,7 +14,7 @@ fn part1(nums: &[usize]) -> usize {
     for &num in nums {
         let short = GOAL - num;
         if seen[short / 64] & (1 << (short % 64)) != 0 {
-            return num * short
+            return num * short;
         }
         seen[num / 64] |= 1 << (num % 64);
     }
@@ -26,7 +26,7 @@ fn part2(nums: &[usize]) -> usize {
     for (ind, &i) in nums.iter().enumerate() {
         for &j in &nums[(ind + 1)..] {
             if i + j >= GOAL {
-                continue
+                continue;
             }
             places[i + j] = i * j;
         }
@@ -73,7 +73,7 @@ mod tests {
 
     #[test]
     fn part2_test() {
-        let numbers= load_numbers();
+        let numbers = load_numbers();
         assert_eq!(part2(&numbers), 244300320)
     }
 }

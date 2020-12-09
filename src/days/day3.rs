@@ -1,25 +1,37 @@
 use std::time::Instant;
 
-type Row = Vec<bool>;
-type Trees = Vec<Row>;
+const INPUT: &str = include_str!("../../files/03.txt");
 
-fn load_trees() -> Trees {
-    include_str!("../../files/03.txt")
-        .lines()
-        .map(|line| line.chars().map(|c| c == '#').collect())
-        .collect()
+struct Trees {
+    width: usize,
+    rows: Vec<usize>,
 }
 
-fn part1(trees: &[Row], right: usize, down: usize) -> usize {
-    let width = trees.first().expect("non zero entries").len();
-    (0..trees.len() / down)
+fn load_trees(input: &str) -> Trees {
+    let mut width = 0;
+    let rows = input
+        .lines()
+        .map(|line| {
+            width = line.len();
+            line.chars()
+                .zip(0..)
+                .filter(|&(c, _)| c == '#')
+                .map(|t| t.1)
+                .fold(0, |acc, v| acc | (1 << v))
+        })
+        .collect();
+    Trees { width, rows }
+}
+
+fn part1(trees: &Trees, right: usize, down: usize) -> usize {
+    (0..trees.rows.len() / down)
         .map(|i| i * down)
-        .zip((0..).step_by(right).map(|v| v % width))
-        .filter(|&(y, x)| trees[y][x])
+        .zip((0..).map(|x| (x * right) % trees.width))
+        .filter(|&(y, x)| (trees.rows[y] & (1 << x)) != 0)
         .count()
 }
 
-fn part2(trees: &[Row]) -> usize {
+fn part2(trees: &Trees) -> usize {
     [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)]
         .iter()
         .map(|&(right, down)| part1(trees, right, down))
@@ -28,7 +40,7 @@ fn part2(trees: &[Row]) -> usize {
 
 pub fn run() {
     let start = Instant::now();
-    let trees = load_trees();
+    let trees = load_trees(INPUT);
     let data_loaded = Instant::now();
     let p1 = part1(&trees, 3, 1);
     let done_part1 = Instant::now();
@@ -50,13 +62,13 @@ mod tests {
 
     #[test]
     fn part1_test() {
-        let trees = load_trees();
+        let trees = load_trees(INPUT);
         assert_eq!(part1(&trees, 3, 1), 205)
     }
 
     #[test]
     fn part2_test() {
-        let trees = load_trees();
+        let trees = load_trees(INPUT);
         assert_eq!(part2(&trees), 3952146825)
     }
 }

@@ -23,7 +23,7 @@ struct ChildBagInfo<'a> {
 
 unsafe fn combine_name_parts<'a>(a: &'a str, b: &'a str) -> &'a str {
     let s = slice_from_raw_parts(a.as_ptr(), a.len() + b.len() + 1);
-    std::str::from_utf8(&*s).expect("you were literally just strings")
+    std::str::from_utf8_unchecked(&*s)
 }
 
 unsafe fn get_rest_of_string<'a>(full: &'a str, start: &'a str) -> &'a str {
@@ -36,6 +36,8 @@ unsafe fn get_rest_of_string<'a>(full: &'a str, start: &'a str) -> &'a str {
 
 impl BagTree<'_> {
     fn new(input: &str) -> BagTree {
+        let start = Instant::now();
+
         let colour_and_children: Vec<(&str, &str)> = input
             .lines()
             .map(|rule| {
@@ -51,16 +53,23 @@ impl BagTree<'_> {
             })
             .collect();
 
+        let step_1 = Instant::now();
+        println!("get colours and children: {:?}", step_1 - start);
+
         let mut nodes = HashMap::with_capacity(colour_and_children.len());
-        colour_and_children
-            .iter()
-            .for_each(|&(colour, _)| {
-                nodes.insert(colour, Rc::new(Bag {
+        colour_and_children.iter().for_each(|&(colour, _)| {
+            nodes.insert(
+                colour,
+                Rc::new(Bag {
                     colour,
                     parents: RefCell::new(Vec::new()),
                     children: RefCell::new(Vec::new()),
-                }));
-            });
+                }),
+            );
+        });
+
+        let step_2 = Instant::now();
+        println!("create hashmap: {:?}", step_2 - step_1);
 
         colour_and_children
             .into_iter()
@@ -81,14 +90,9 @@ impl BagTree<'_> {
                     let quality = words.next().expect("be a thing");
                     let colour = words.next().expect("be a thing");
                     let colour = unsafe { combine_name_parts(quality, colour) };
-                    let child = nodes
-                        .get(colour)
-                        .expect("should be put in");
+                    let child = nodes.get(colour).expect("should be put in");
 
-                    child
-                        .parents
-                        .borrow_mut()
-                        .push(Rc::downgrade(parent));
+                    child.parents.borrow_mut().push(Rc::downgrade(parent));
 
                     ChildBagInfo {
                         count,
@@ -98,6 +102,9 @@ impl BagTree<'_> {
 
                 parent.children.borrow_mut().extend(children);
             });
+
+        let step_3 = Instant::now();
+        println!("populated hashmap: {:?}", step_3 - step_2);
 
         BagTree { nodes }
     }

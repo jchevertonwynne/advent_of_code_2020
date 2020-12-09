@@ -1,7 +1,7 @@
+use core::str::Split;
+use std::convert::TryFrom;
 use std::ops::Try;
 use std::time::Instant;
-use std::convert::TryFrom;
-use core::str::Split;
 
 const INPUT: &str = include_str!("../../files/02.txt");
 
@@ -19,11 +19,13 @@ struct Entry<'a> {
 fn get_next_int(eat: &mut Split<char>) -> Result<usize, String> {
     match eat.next() {
         Some(v) => v,
-        None => return Err("not enough values found".to_string())
-    }.parse::<usize>().map_err(|err| err.to_string())
+        None => return Err("not enough values found".to_string()),
+    }
+    .parse::<usize>()
+    .map_err(|err| err.to_string())
 }
 
-impl <'a> TryFrom<&'a str> for Entry<'a> {
+impl<'a> TryFrom<&'a str> for Entry<'a> {
     type Error = String;
 
     fn try_from(s: &'a str) -> Result<Self, Self::Error> {
@@ -35,7 +37,9 @@ impl <'a> TryFrom<&'a str> for Entry<'a> {
         let min = get_next_int(&mut limits)?;
         let max = get_next_int(&mut limits)?;
 
-        let char = parts.next().ok_or("pls be a thing")?
+        let char = parts
+            .next()
+            .ok_or("pls be a thing")?
             .chars()
             .next()
             .into_result()
@@ -63,9 +67,9 @@ impl Entry<'_> {
         match self.password.get(self.req.min - 1) {
             Some(&first) => match self.password.get(self.req.max - 1) {
                 Some(&second) => (first == self.req.char as u8) ^ (second == self.req.char as u8),
-                None => first == self.req.char as u8
-            }
-            None => false
+                None => first == self.req.char as u8,
+            },
+            None => false,
         }
     }
 }
@@ -75,13 +79,11 @@ fn solve(input: &str) -> (usize, usize) {
         .lines()
         .map(|line| Entry::try_from(line).expect("should be valid input"))
         .map(|entry| (entry.valid(), entry.alt_valid()))
-        .fold((0, 0), |(a, b), status| {
-            match status {
-                (true, true) => (a + 1, b + 1),
-                (true, false) => (a + 1, b),
-                (false, true) => (a, b + 1),
-                (false, false) => (a, b),
-            }
+        .fold((0, 0), |(a, b), status| match status {
+            (true, true) => (a + 1, b + 1),
+            (true, false) => (a + 1, b),
+            (false, true) => (a, b + 1),
+            (false, false) => (a, b),
         })
 }
 

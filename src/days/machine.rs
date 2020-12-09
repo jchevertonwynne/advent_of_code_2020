@@ -25,7 +25,7 @@ impl FromStr for Instruction {
         let i = num[1..].parse::<i64>().map_err(|err| err.to_string())?;
         let i = match num.starts_with('+') {
             true => i,
-            false => -i
+            false => -i,
         };
         match &s[..3] {
             "nop" => Ok(Instruction::Nop(i)),
