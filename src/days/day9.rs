@@ -16,13 +16,13 @@ fn part1(nums: &[usize], check: usize) -> usize {
             for b in &window[i + 1..] {
                 if a + b == checking {
                     has_match = true;
-                    break 'checker
+                    break 'checker;
                 }
             }
         }
 
         if !has_match {
-            return checking
+            return checking;
         }
     }
 
@@ -36,12 +36,12 @@ fn part2(nums: &[usize], goal: usize) -> usize {
             let next = nums[j];
             sum += next;
             if sum > goal {
-                break
+                break;
             }
             if sum == goal {
                 let smallest = nums[i..j].iter().min().expect("pls");
                 let largest = nums[i..j].iter().max().expect("pls");
-                return smallest + largest
+                return smallest + largest;
             }
         }
     }

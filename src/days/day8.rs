@@ -14,7 +14,10 @@ fn part2(machine: Machine) -> i64 {
         .into_par_iter()
         .find_map_any(|r| {
             let mut m = machine.clone();
-            match m.swap_ins(r) && m.run_to_cycle() {
+            if !m.swap_ins(r) {
+                return None
+            }
+            match m.run_to_cycle() {
                 true => None,
                 false => Some(m.acc()),
             }
@@ -28,7 +31,7 @@ pub fn run() {
     let data_loaded = Instant::now();
     let p1 = part1(machine.clone());
     let done_part1 = Instant::now();
-    let p2 = part2(machine.clone());
+    let p2 = part2(machine);
     let done_part2 = Instant::now();
 
     println!("    part 1: {}", p1);
@@ -42,9 +45,10 @@ pub fn run() {
 
 #[cfg(test)]
 mod test {
-    use crate::days::day8::{INPUT, part1, part2};
+    use crate::days::day8::{part1, part2, INPUT};
     use crate::days::machine::Machine;
 
+    #[test]
     fn test_parts() {
         let machine = INPUT.parse::<Machine>().expect("please be a machine");
         assert_eq!(part1(machine.clone()), 1671);

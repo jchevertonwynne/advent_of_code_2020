@@ -71,10 +71,11 @@ impl Machine {
     }
 
     pub fn run_to_cycle(&mut self) -> bool {
-        let mut seen = Vec::with_capacity(self.instructions.len());
-        for _ in 0..self.instructions.len() {
-            seen.push(0);
-        }
+        let mut seen = vec![0; self.instructions.len()];
+        // let mut seen = Vec::with_capacity(self.instructions.len());
+        // for _ in 0..self.instructions.len() {
+        //     seen.push(0);
+        // }
         loop {
             self.iterate();
             if self.i >= self.instructions.len() as i64 {

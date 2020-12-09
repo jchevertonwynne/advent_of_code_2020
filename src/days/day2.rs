@@ -55,11 +55,7 @@ impl<'a> TryFrom<&'a str> for Entry<'a> {
 
 impl Entry<'_> {
     fn valid(&self) -> bool {
-        let seen = self
-            .password
-            .iter()
-            .filter(|&&c| c == self.req.char as u8)
-            .count();
+        let seen = bytecount::count(self.password, self.req.char as u8);
         seen >= self.req.min && seen <= self.req.max
     }
 
