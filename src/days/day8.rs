@@ -39,3 +39,15 @@ pub fn run() {
     println!("    part 1: {:?}", done_part1.duration_since(data_loaded));
     println!("    part 2: {:?}", done_part2.duration_since(done_part1));
 }
+
+#[cfg(test)]
+mod test {
+    use crate::days::day8::{INPUT, part1, part2};
+    use crate::days::machine::Machine;
+
+    fn test_parts() {
+        let machine = INPUT.parse::<Machine>().expect("please be a machine");
+        assert_eq!(part1(machine.clone()), 1671);
+        assert_eq!(part2(machine.clone()), 892);
+    }
+}
