@@ -15,7 +15,7 @@ fn part2(machine: Machine) -> i64 {
         .find_map_any(|r| {
             let mut m = machine.clone();
             if !m.swap_ins(r) {
-                return None
+                return None;
             }
             match m.run_to_cycle() {
                 true => None,

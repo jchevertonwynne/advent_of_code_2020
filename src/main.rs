@@ -22,19 +22,15 @@ fn main() {
     let start = Instant::now();
     for arg in args {
         match arg.parse::<usize>() {
-            Ok(i) => {
-                if i == 0 {
-                    continue;
+            Ok(0) => (),
+            Ok(i) => match opts.get(i - 1) {
+                Some(opt) => {
+                    println!("-------------------------");
+                    println!("{}", format!("day {}", i));
+                    opt();
                 }
-                match opts.get(i - 1) {
-                    Some(opt) => {
-                        println!("-------------------------");
-                        println!("{}", format!("day {}", i));
-                        opt();
-                    }
-                    None => println!("invalid option {}", arg),
-                }
-            }
+                None => println!("invalid option {}", arg),
+            },
             _ => println!("illegal arg: {}", arg),
         }
     }

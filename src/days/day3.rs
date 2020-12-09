@@ -15,8 +15,7 @@ fn load_trees(input: &str) -> Trees {
             width = line.len();
             line.chars()
                 .zip(0..)
-                .filter(|&(c, _)| c == '#')
-                .map(|t| t.1)
+                .filter_map(|(c, i)| if c == '#' { Some(i) } else { None })
                 .fold(0, |acc, v| acc | (1 << v))
         })
         .collect();

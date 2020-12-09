@@ -3,23 +3,24 @@ use std::time::Instant;
 const INPUT: &str = include_str!("../../files/09.txt");
 
 fn load_numbers(input: &str) -> Vec<usize> {
-    input.lines().map(|n| n.parse().expect("pls")).collect()
+    input
+        .lines()
+        .map(|n| {
+            n.parse()
+                .expect("input must be list of integers, one per line")
+        })
+        .collect()
 }
 
 fn part1(nums: &[usize], check: usize) -> usize {
-    for to_check in nums.windows(check + 1) {
-        let checking = *to_check.last().expect("is a window with size");
-        let window = &to_check[..to_check.len() - 1];
+    for window in nums.windows(check + 1) {
+        let checking = window[check];
+        let window = &window[..check];
 
-        let mut has_match = false;
-        'checker: for (i, a) in window.iter().enumerate() {
-            for b in &window[i + 1..] {
-                if a + b == checking {
-                    has_match = true;
-                    break 'checker;
-                }
-            }
-        }
+        let has_match = window
+            .iter()
+            .enumerate()
+            .any(|(i, a)| window[i + 1..].iter().any(|b| a + b == checking));
 
         if !has_match {
             return checking;
@@ -39,8 +40,11 @@ fn part2(nums: &[usize], goal: usize) -> usize {
                 break;
             }
             if sum == goal {
-                let smallest = nums[i..j].iter().min().expect("pls");
-                let largest = nums[i..j].iter().max().expect("pls");
+                let (smallest, largest) = nums[i..j]
+                    .iter()
+                    .fold((usize::max_value(), usize::min_value()), |(a, b), &v| {
+                        (a.min(v), b.min(v))
+                    });
                 return smallest + largest;
             }
         }
