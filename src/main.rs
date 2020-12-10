@@ -20,17 +20,50 @@ fn main() {
 
     let start = Instant::now();
     for arg in args {
-        match arg.parse::<usize>() {
-            Ok(0) => (),
-            Ok(i) => match opts.get(i - 1) {
-                Some(opt) => {
+        if arg.contains(':') {
+            let parts = arg.split(':').collect::<Vec<_>>();
+            match parts[0].parse::<usize>() {
+                Ok(i) => match parts.len() {
+                    1 => {
+                        println!("-------------------------");
+                        println!("{}", format!("day {}", i));
+                        opts[i - 1]();
+                    }
+                    2 => match parts[1].parse::<usize>() {
+                        Ok(j) => {
+                            for _ in 0..j {
+                                println!("-------------------------");
+                                println!("{}", format!("day {} run {}", i, j));
+                                opts[i - 1]();
+                            }
+                        }
+                        _ => println!("illegal quantifier: {}", arg),
+                    },
+                    _ => panic!("what"),
+                },
+                _ => println!("illegal arg: {}", arg),
+            }
+        } else if arg.contains('-') {
+            let parts = arg.split('-').collect::<Vec<_>>();
+            match (parts[0].parse::<usize>(), parts[1].parse::<usize>()) {
+                (Ok(a), Ok(b)) => {
+                    for i in a..=b {
+                        println!("-------------------------");
+                        println!("{}", format!("day {}", i));
+                        opts[i - 1]();
+                    }
+                }
+                _ => println!("invalid range: {}", arg),
+            }
+        } else {
+            match arg.parse::<usize>() {
+                Ok(i) => {
                     println!("-------------------------");
                     println!("{}", format!("day {}", i));
-                    opt();
+                    opts[i - 1]();
                 }
-                None => println!("invalid option {}", arg),
-            },
-            _ => println!("illegal arg: {}", arg),
+                _ => println!("invalid range: {}", arg),
+            }
         }
     }
     let end = Instant::now();

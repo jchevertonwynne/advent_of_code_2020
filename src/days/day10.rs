@@ -12,10 +12,13 @@ fn load_input(input: &str) -> Vec<usize> {
 }
 
 fn part1(jolts: &[usize]) -> usize {
-    let mut ones = 1;
-    let mut threes = 1;
+    let mut ones = 0;
+    let mut threes = 0;
 
-    for (first, second) in jolts.iter().zip(jolts[1..].iter()) {
+    for (&first, &second) in std::iter::once(&0usize)
+        .chain(jolts.iter())
+        .zip(jolts.iter())
+    {
         match second - first {
             1 => ones += 1,
             3 => threes += 1,
@@ -65,7 +68,7 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
-    use crate::days::day10::{load_input, part2, INPUT, part1};
+    use crate::days::day10::{load_input, part1, part2, INPUT};
 
     #[test]
     fn test_actual() {
