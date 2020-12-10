@@ -11,51 +11,49 @@ fn load_input(input: &str) -> Vec<usize> {
     res
 }
 
-fn part1(jolts: &[usize]) -> usize {
-    let mut ones = 0;
-    let mut threes = 0;
-
-    for (&first, &second) in std::iter::once(&0usize)
-        .chain(jolts.iter())
-        .zip(jolts.iter())
-    {
-        match second - first {
-            1 => ones += 1,
-            3 => threes += 1,
-            _ => (),
-        }
-    }
-
-    ones * threes
-}
-
-fn part2(mut jolts: Vec<usize>) -> usize {
-    let after_zero = jolts.iter().take_while(|&j| *j <= 3).count();
-
-    (0..jolts.len()).for_each(|i| {
-        jolts[i] = jolts[i + 1..]
-            .iter()
-            .take_while(|j| *j - jolts[i] <= 3)
-            .count();
-    });
-    let ind = jolts.len() - 1;
-    jolts[ind] = 1;
-
-    (0..jolts.len() - 1)
-        .rev()
-        .for_each(|i| jolts[i] = jolts[i + 1..i + 1 + jolts[i]].iter().sum());
-
-    jolts[..after_zero].iter().sum()
-}
-
-fn solve(input :&str) -> (usize, usize) {
+fn solve(nums: &[usize]) -> (usize, usize) {
     let mut ones = 0;
     let mut threes = 0;
     let mut p2 = 1;
 
     let mut last = 0;
+    let mut consec = 0;
+    for num in nums {
+        match num - last {
+            1 => {
+                ones += 1;
+                consec += 1;
 
+            }
+            3 => {
+                threes += 1;
+                p2 *= match consec {
+                    0 => 1,
+                    1 => 1,
+                    2 => 2,
+                    3 => 4,
+                    4 => 7,
+                    5 => 13,
+                    _ => panic!("lol1")
+                };
+                consec = 0;
+            }
+            _ => panic!("lol2")
+        }
+        last = *num;
+    }
 
+    p2 *= match consec {
+        0 => 1,
+        1 => 1,
+        2 => 2,
+        3 => 4,
+        4 => 7,
+        5 => 13,
+        _ => panic!("lol1")
+    };
+
+    threes += 1;
     (ones * threes, p2)
 }
 
@@ -63,29 +61,25 @@ pub fn run() {
     let start = Instant::now();
     let jolts = load_input(INPUT);
     let data_loaded = Instant::now();
-    let p1 = part1(&jolts);
-    let done_part1 = Instant::now();
-    let p2 = part2(jolts);
-    let done_part2 = Instant::now();
+    let (p1, p2) = solve(&jolts);
+    let done = Instant::now();
 
     println!("    part 1: {}", p1);
     println!("    part 2: {}", p2);
     println!("time taken:");
-    println!("    total: {:?}", done_part2.duration_since(start));
+    println!("    total: {:?}", done.duration_since(start));
     println!("    data load: {:?}", data_loaded.duration_since(start));
-    println!("    part 1: {:?}", done_part1.duration_since(data_loaded));
-    println!("    part 2: {:?}", done_part2.duration_since(done_part1));
+    println!("    parts: {:?}", done.duration_since(data_loaded));
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::days::day10::{load_input, part1, part2, INPUT};
+    use crate::days::day10::{load_input, INPUT, solve};
 
     #[test]
     fn test_actual() {
         let nums = load_input(INPUT);
-        assert_eq!(part1(&nums), 2484);
-        assert_eq!(part2(nums), 15790581481472);
+        assert_eq!(solve(&nums), (2484, 15790581481472));
     }
 
     #[test]
@@ -104,26 +98,7 @@ mod tests {
 4",
         );
         nums.sort_unstable();
-        assert_eq!(part2(nums), 8);
-
-        let mut nums = load_input(
-            "1
-2
-3",
-        );
-        nums.sort_unstable();
-        assert_eq!(part2(nums), 4);
-
-        let mut nums = load_input(
-            "1
-2
-3
-4",
-        );
-        nums.sort_unstable();
-        assert_eq!(part2(nums), 7);
-
-        println!("------------");
+        assert_eq!(solve(&nums), (35, 8));
 
         let mut nums = load_input(
             "28
@@ -159,7 +134,6 @@ mod tests {
 3",
         );
         nums.sort_unstable();
-        println!("{:?}", nums);
-        assert_eq!(part2(nums), 19208);
+        assert_eq!(solve(&nums), (220, 19208));
     }
 }
