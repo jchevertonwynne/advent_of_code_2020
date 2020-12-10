@@ -50,32 +50,6 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
-    #[test]
-    fn test_part1() {
-        let passes = load_ids();
-        assert_eq!(part1(&passes), 885);
-    }
-
-    #[test]
-    fn test_part2() {
-        let passes = load_ids();
-        assert_eq!(part2(&passes), 623);
-    }
-
-    #[test]
-    fn part_2_scenarios() {
-        for i in 20..80 {
-            for start in 5..10 {
-                for end in 90..123 {
-                    let args = (start..end).filter(|&v| v != i).collect::<Vec<_>>();
-                    assert_eq!(part2(&args), i);
-                }
-            }
-        }
-    }
-
     #[test]
     fn to_id() {
         let acc = |acc, v| {

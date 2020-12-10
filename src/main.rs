@@ -13,6 +13,7 @@ fn main() {
         || days::day7::run(),
         || days::day8::run(),
         || days::day9::run(),
+        || days::day10::run(),
     ];
 
     let args = std::env::args().skip(1).collect::<Vec<_>>();
