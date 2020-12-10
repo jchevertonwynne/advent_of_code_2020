@@ -8,7 +8,8 @@ fn load_numbers(input: &str) -> Vec<usize> {
         .map(|n| {
             n.parse::<usize>()
                 .expect("input must be list of integers, one per line")
-        }).collect()
+        })
+        .collect()
 }
 
 fn part1(nums: &[usize], check: usize) -> usize {

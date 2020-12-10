@@ -13,16 +13,17 @@ fn solve(input: &str) -> (usize, usize) {
             line.chars().fold(0, |acc, v| {
                 (acc << 1)
                     + match v {
-                    'R' | 'B' => 1,
-                    _ => 0,
-                }
+                        'R' | 'B' => 1,
+                        _ => 0,
+                    }
             })
-        }).for_each(|i| {
-        p1 = p1.max(i);
-        p2 ^= i;
-        smallest = usize::min(smallest, i);
-        largest = usize::max(largest, i);
-    });
+        })
+        .for_each(|i| {
+            p1 = p1.max(i);
+            p2 ^= i;
+            smallest = usize::min(smallest, i);
+            largest = usize::max(largest, i);
+        });
 
     let dist = largest - smallest;
     let poss_dist = largest.next_power_of_two() - largest;

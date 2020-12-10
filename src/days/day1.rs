@@ -45,7 +45,6 @@ fn part2(nums: &[usize]) -> usize {
 pub fn run() {
     let start = Instant::now();
     let nums = load_numbers();
-
     let data_loaded = Instant::now();
     let p1 = part1(&nums);
     let done_part1 = Instant::now();
