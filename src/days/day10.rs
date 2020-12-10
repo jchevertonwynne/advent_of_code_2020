@@ -15,7 +15,7 @@ fn part1(jolts: &[usize]) -> usize {
     let mut ones = 1;
     let mut threes = 1;
 
-    for (first, second) in jolts.iter().zip(jolts.iter().skip(1)) {
+    for (first, second) in jolts.iter().zip(jolts[1..].iter()) {
         match second - first {
             1 => ones += 1,
             3 => threes += 1,
@@ -26,25 +26,23 @@ fn part1(jolts: &[usize]) -> usize {
     ones * threes
 }
 
-fn part2(jolts: &[usize]) -> usize {
-    let mut ways_to_next = Vec::with_capacity(jolts.len() + 1);
-    ways_to_next.push(jolts.iter().take_while(|&j| *j <= 3).count());
+fn part2(mut jolts: Vec<usize>) -> usize {
+    let after_zero = jolts.iter().take_while(|&j| *j <= 3).count();
 
-    for i in 0..jolts.len() - 1 {
-        ways_to_next.push(
-            jolts[i + 1..]
-                .iter()
-                .take_while(|j| *j - jolts[i] <= 3)
-                .count(),
-        );
-    }
-    ways_to_next.push(1);
+    (0..jolts.len()).for_each(|i| {
+        jolts[i] = jolts[i + 1..]
+            .iter()
+            .take_while(|j| *j - jolts[i] <= 3)
+            .count();
+    });
+    let ind = jolts.len() - 1;
+    jolts[ind] = 1;
 
-    (0..=ways_to_next.len() - 2)
+    (0..jolts.len() - 1)
         .rev()
-        .for_each(|i| ways_to_next[i] = ways_to_next[i + 1..i + 1 + ways_to_next[i]].iter().sum());
+        .for_each(|i| jolts[i] = jolts[i + 1..i + 1 + jolts[i]].iter().sum());
 
-    ways_to_next[0]
+    jolts[..after_zero].iter().sum()
 }
 
 pub fn run() {
@@ -53,7 +51,7 @@ pub fn run() {
     let data_loaded = Instant::now();
     let p1 = part1(&jolts);
     let done_part1 = Instant::now();
-    let p2 = part2(&jolts);
+    let p2 = part2(jolts);
     let done_part2 = Instant::now();
 
     println!("    part 1: {}", p1);
@@ -73,7 +71,7 @@ mod tests {
     fn test_actual() {
         let nums = load_input(INPUT);
         assert_eq!(part1(&nums), 2484);
-        assert_eq!(part2(&nums), 15790581481472);
+        assert_eq!(part2(nums), 15790581481472);
     }
 
     #[test]
@@ -92,7 +90,7 @@ mod tests {
 4",
         );
         nums.sort_unstable();
-        assert_eq!(part2(&nums), 8);
+        assert_eq!(part2(nums), 8);
 
         let mut nums = load_input(
             "1
@@ -100,7 +98,7 @@ mod tests {
 3",
         );
         nums.sort_unstable();
-        assert_eq!(part2(&nums), 4);
+        assert_eq!(part2(nums), 4);
 
         let mut nums = load_input(
             "1
@@ -109,7 +107,7 @@ mod tests {
 4",
         );
         nums.sort_unstable();
-        assert_eq!(part2(&nums), 7);
+        assert_eq!(part2(nums), 7);
 
         println!("------------");
 
@@ -148,6 +146,6 @@ mod tests {
         );
         nums.sort_unstable();
         println!("{:?}", nums);
-        assert_eq!(part2(&nums), 19208);
+        assert_eq!(part2(nums), 19208);
     }
 }
