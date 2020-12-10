@@ -48,6 +48,17 @@ fn part2(mut jolts: Vec<usize>) -> usize {
     jolts[..after_zero].iter().sum()
 }
 
+fn solve(input :&str) -> (usize, usize) {
+    let mut ones = 0;
+    let mut threes = 0;
+    let mut p2 = 1;
+
+    let mut last = 0;
+
+
+    (ones * threes, p2)
+}
+
 pub fn run() {
     let start = Instant::now();
     let jolts = load_input(INPUT);
