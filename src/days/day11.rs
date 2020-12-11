@@ -2,15 +2,36 @@ use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/11.txt");
 
-#[derive(Copy, Clone, PartialEq)]
+const ORDINALS: [(i64, i64); 8] = [
+    (0, 1),
+    (0, -1),
+    (1, 0),
+    (-1, 0),
+    (1, 1),
+    (1, -1),
+    (-1, 1),
+    (-1, -1),
+];
+
+#[derive(Copy, Clone, PartialEq, Debug)]
 enum Tile {
     Floor,
     Occupied,
     Empty,
 }
 
+impl Tile {
+    fn next(&self, occupied: usize, trigger: usize) -> Option<Tile> {
+        match self {
+            Tile::Occupied if occupied >= trigger => Some(Tile::Empty),
+            Tile::Empty if occupied == 0 => Some(Tile::Occupied),
+            _ => None,
+        }
+    }
+}
+
 enum SightMode {
-    Immediate,
+    Surrounding,
     LineOfSight,
 }
 
@@ -18,57 +39,50 @@ enum SightMode {
 struct World {
     a: Vec<Vec<Tile>>,
     b: Vec<Vec<Tile>>,
-    first: bool
+    first: bool,
 }
 
 impl World {
     fn iterate(&mut self, trigger: usize, sight_mode: SightMode) -> bool {
         let mut change = false;
 
-        match self.first {
-            true => {
-                for (i, row) in self.a.iter().enumerate() {
-                    for (j, tile) in row.iter().enumerate() {
-                        let occ = match sight_mode {
-                            SightMode::Immediate => self.surrounding(i, j),
-                            SightMode::LineOfSight => self.line_of_sight(i, j),
-                        };
-                        let next = match tile {
-                            Tile::Occupied if occ >= trigger => {
-                                change = true;
-                                Tile::Empty
-                            }
-                            Tile::Empty if occ == 0 => {
-                                change = true;
-                                Tile::Occupied
-                            }
-                            _ => *tile,
-                        };
+        let mut changes = Vec::new();
+
+        if self.first {
+            for (i, row) in self.a.iter().enumerate() {
+                for (j, tile) in row.iter().enumerate() {
+                    let occupied = match sight_mode {
+                        SightMode::Surrounding => self.surrounding(i, j),
+                        SightMode::LineOfSight => self.line_of_sight(i, j),
+                    };
+                    if let Some(next) = tile.next(occupied, trigger) {
                         self.b[i][j] = next;
+                        changes.push((i, j));
+                        change = true;
                     }
                 }
             }
-            false => {
-                for (i, row) in self.b.iter().enumerate() {
-                    for (j, tile) in row.iter().enumerate() {
-                        let occ = match sight_mode {
-                            SightMode::Immediate => self.surrounding(i, j),
-                            SightMode::LineOfSight => self.line_of_sight(i, j),
-                        };
-                        let next = match tile {
-                            Tile::Occupied if occ >= trigger => {
-                                change = true;
-                                Tile::Empty
-                            }
-                            Tile::Empty if occ == 0 => {
-                                change = true;
-                                Tile::Occupied
-                            }
-                            _ => *tile,
-                        };
+
+            for (i, j) in changes.into_iter() {
+                self.a[i][j] = self.b[i][j];
+            }
+        } else {
+            for (i, row) in self.b.iter().enumerate() {
+                for (j, tile) in row.iter().enumerate() {
+                    let occupied = match sight_mode {
+                        SightMode::Surrounding => self.surrounding(i, j),
+                        SightMode::LineOfSight => self.line_of_sight(i, j),
+                    };
+                    if let Some(next) = tile.next(occupied, trigger) {
                         self.a[i][j] = next;
+                        changes.push((i, j));
+                        change = true;
                     }
                 }
+            }
+
+            for (i, j) in changes.into_iter() {
+                self.b[i][j] = self.a[i][j];
             }
         }
 
@@ -87,26 +101,25 @@ impl World {
         }
     }
 
+    fn occupied(&self) -> usize {
+        self.curr()
+            .iter()
+            .flat_map(|row| row.iter())
+            .filter(|&t| *t == Tile::Occupied)
+            .count()
+    }
+
     fn surrounding(&self, i: usize, j: usize) -> usize {
         let mut occupied = 0;
+        let curr = self.curr();
 
-        let directions = vec![
-            (0, 1),
-            (0, -1),
-            (1, 0),
-            (-1, 0),
-            (1, 1),
-            (1, -1),
-            (-1, 1),
-            (-1, -1),
-        ];
-        for (dx, dy) in directions {
+        for &(dx, dy) in ORDINALS.iter() {
             let nx = i as i64 + dx;
             let ny = j as i64 + dy;
-            if nx < 0 || ny < 0 || nx >= self.curr().len() as i64 || ny >= self.curr()[0].len() as i64 {
+            if nx < 0 || ny < 0 || nx >= curr.len() as i64 || ny >= curr[0].len() as i64 {
                 continue;
             }
-            if self.curr()[nx as usize][ny as usize] == Tile::Occupied {
+            if curr[nx as usize][ny as usize] == Tile::Occupied {
                 occupied += 1;
             }
         }
@@ -116,21 +129,13 @@ impl World {
 
     fn line_of_sight(&self, i: usize, j: usize) -> usize {
         let mut occupied = 0;
-        let directions = vec![
-            (0, 1),
-            (0, -1),
-            (1, 0),
-            (-1, 0),
-            (1, 1),
-            (1, -1),
-            (-1, 1),
-            (-1, -1),
-        ];
-        for (dx, dy) in directions {
+        let curr = self.curr();
+
+        for &(dx, dy) in ORDINALS.iter() {
             let mut nx = i as i64 + dx;
             let mut ny = j as i64 + dy;
-            while nx >= 0 && ny >= 0 && nx < self.curr().len() as i64 && ny < self.curr()[0].len() as i64 {
-                match self.curr()[nx as usize][ny as usize] {
+            while nx >= 0 && ny >= 0 && nx < curr.len() as i64 && ny < curr[0].len() as i64 {
+                match curr[nx as usize][ny as usize] {
                     Tile::Occupied => {
                         occupied += 1;
                         break;
@@ -160,51 +165,44 @@ fn load_world(input: &str) -> World {
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
-    let second = vec![vec![Tile::Empty; contents[0].len()]; contents.len()];
-    World{
+    let second = contents.clone();
+    World {
         a: contents,
         b: second,
-        first: true
+        first: true,
     }
 }
 
 fn part1(mut world: World) -> usize {
-    while world.iterate(4, SightMode::Immediate) {}
-
-    world
-        .curr()
-        .iter()
-        .map(|row| row.iter().filter(|&t| *t == Tile::Occupied).count())
-        .sum()
+    while world.iterate(4, SightMode::Surrounding) {}
+    world.occupied()
 }
 
 fn part2(mut world: World) -> usize {
     while world.iterate(5, SightMode::LineOfSight) {}
-
-    world
-        .curr()
-        .iter()
-        .map(|row| row.iter().filter(|&t| *t == Tile::Occupied).count())
-        .sum()
+    world.occupied()
 }
 
 pub fn run() -> (usize, usize, Duration) {
     let start = Instant::now();
     let world = load_world(INPUT);
-    let dl = Instant::now();
     let p1 = part1(world.clone());
-    let dp1 = Instant::now();
-    let p2 = part2(world);
+    let p2 = part2(world.clone());
     let done = Instant::now();
-
-    println!("{:?} {:?}", dl - start, dp1 - dl);
 
     (p1, p2, done - start)
 }
 
 #[cfg(test)]
 mod test {
-    use crate::days::day11::{load_world, part1};
+    use crate::days::day11::{load_world, part1, part2, INPUT};
+
+    #[test]
+    fn test_actual() {
+        let world = load_world(INPUT);
+        assert_eq!(part1(world.clone()), 2204);
+        assert_eq!(part2(world.clone()), 1986);
+    }
 
     #[test]
     fn test_p1() {

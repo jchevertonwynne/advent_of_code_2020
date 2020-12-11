@@ -27,7 +27,7 @@ fn main() {
         || days::day11::run(),
     ];
 
-    let args = std::env::args().skip(1).collect::<Vec<_>>();
+    let args = std::env::args().skip(1);
 
     let mut actions = Vec::new();
 
@@ -68,21 +68,21 @@ fn main() {
     for action in actions {
         match action {
             Runnable::Single(i) => {
-                let (p1, p2, duration) = opts[i - 1]();
                 println!();
                 println!("{}", format!("day {}", i));
-                println!("    part1: {}", p1);
-                println!("    part2: {}", p2);
-                println!("    time:  {:?}", duration);
+                let (p1, p2, duration) = opts[i - 1]();
+                println!("    part 1: {}", p1);
+                println!("    part 2: {}", p2);
+                println!("    time:   {:?}", duration);
             }
             Runnable::Range(first, last) => {
                 for i in first..=last {
-                    let (p1, p2, duration) = opts[i - 1]();
                     println!();
                     println!("{}", format!("day {}", i));
-                    println!("    part1: {}", p1);
-                    println!("    part2: {}", p2);
-                    println!("    time:  {:?}", duration);
+                    let (p1, p2, duration) = opts[i - 1]();
+                    println!("    part 1: {}", p1);
+                    println!("    part 2: {}", p2);
+                    println!("    time:   {:?}", duration);
                 }
             }
             Runnable::Repeat(i, repeats) => {
