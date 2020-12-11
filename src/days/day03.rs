@@ -42,9 +42,8 @@ pub fn run() -> (usize, usize, Duration) {
     let trees = load_trees(INPUT);
     let p1 = part1(&trees, 3, 1);
     let p2 = part2(&trees);
-    let done = Instant::now();
 
-    (p1, p2, done - start)
+    (p1, p2, start.elapsed())
 }
 
 #[cfg(test)]

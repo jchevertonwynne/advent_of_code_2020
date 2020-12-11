@@ -3,12 +3,12 @@ use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/08.txt");
 
-fn part1(machine: &mut Machine) -> i64 {
+fn part1(machine: &mut Machine) -> usize {
     machine.run_to_cycle();
-    machine.acc()
+    machine.acc() as usize
 }
 
-fn part2(machine: &mut Machine) -> i64 {
+fn part2(machine: &mut Machine) -> usize {
     (0..machine.ins_count())
         .find_map(|r| {
             machine.reset();
@@ -17,7 +17,7 @@ fn part2(machine: &mut Machine) -> i64 {
                 false => None,
             }
         })
-        .expect("one solution")
+        .expect("one solution") as usize
 }
 
 pub fn run() -> (usize, usize, Duration) {
@@ -25,9 +25,8 @@ pub fn run() -> (usize, usize, Duration) {
     let mut machine = INPUT.parse::<Machine>().expect("please be a machine");
     let p1 = part1(&mut machine);
     let p2 = part2(&mut machine);
-    let done = Instant::now();
 
-    (p1 as usize, p2 as usize, done - start)
+    (p1, p2, start.elapsed())
 }
 
 #[cfg(test)]

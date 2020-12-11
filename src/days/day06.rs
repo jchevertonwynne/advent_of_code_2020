@@ -22,9 +22,8 @@ fn solve_both(input: &str) -> (usize, usize) {
 pub fn run() -> (usize, usize, Duration) {
     let start = Instant::now();
     let (p1, p2) = solve_both(INPUT);
-    let done = Instant::now();
 
-    (p1, p2, done - start)
+    (p1, p2, start.elapsed())
 }
 
 #[cfg(test)]

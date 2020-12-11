@@ -2,6 +2,17 @@ use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/11.txt");
 
+const ORDINALS: [(i64, i64); 8] = [
+    (0, 1),
+    (0, -1),
+    (1, 0),
+    (-1, 0),
+    (1, 1),
+    (1, -1),
+    (-1, 1),
+    (-1, -1),
+];
+
 #[derive(Copy, Clone, PartialEq, Debug)]
 enum Tile {
     Floor,
@@ -10,11 +21,11 @@ enum Tile {
 }
 
 impl Tile {
-    fn next(&self, occupied: usize, trigger: usize) -> Option<Tile> {
+    fn swap(&self) -> Tile {
         match self {
-            Tile::Occupied if occupied >= trigger => Some(Tile::Empty),
-            Tile::Empty if occupied == 0 => Some(Tile::Occupied),
-            _ => None,
+            Tile::Occupied => Tile::Empty,
+            Tile::Empty => Tile::Occupied,
+            Tile::Floor => Tile::Floor,
         }
     }
 }
@@ -34,28 +45,57 @@ struct World {
 impl World {
     fn iterate(&mut self, trigger: usize, sight_mode: SightMode) -> bool {
         let mut change = false;
-        let mut copy_into = self.floor.clone();
+
+        let mut changes = Vec::new();
 
         for (i, row) in self.floor.iter().enumerate() {
             for (j, tile) in row.iter().enumerate() {
-                let occupied = match sight_mode {
-                    SightMode::Surrounding => self.surrounding(i, j),
-                    SightMode::LineOfSight => self.line_of_sight[i][j]
-                        .iter()
-                        .filter(|(x, y)| self.floor[*x][*y] == Tile::Occupied)
-                        .count(),
-                };
-                if let Some(next) = tile.next(occupied, trigger) {
-                    copy_into[i][j] = next;
-                    change = true;
+                match tile {
+                    Tile::Floor => (),
+                    Tile::Occupied => match sight_mode {
+                        SightMode::Surrounding => {
+                            if self.surrounding(i, j) >= trigger {
+                                changes.push((i, j));
+                                change = true;
+                            }
+                        }
+                        SightMode::LineOfSight => {
+                            if self.line_of_sight[i][j].len() >= trigger
+                                && self.line_of_sight[i][j]
+                                    .iter()
+                                    .filter(|(x, y)| self.floor[*x][*y] == Tile::Occupied)
+                                    .count()
+                                    >= trigger
+                            {
+                                changes.push((i, j));
+                                change = true;
+                            }
+                        }
+                    },
+                    Tile::Empty => match sight_mode {
+                        SightMode::Surrounding => {
+                            if self.surrounding(i, j) == 0 {
+                                changes.push((i, j));
+                                change = true;
+                            }
+                        }
+                        SightMode::LineOfSight => {
+                            if self.line_of_sight[i][j]
+                                .iter()
+                                .all(|(x, y)| self.floor[*x][*y] != Tile::Occupied)
+                            {
+                                changes.push((i, j));
+                                change = true;
+                            }
+                        }
+                    },
                 }
             }
         }
 
-        if change {
-            self.first = !self.first;
-            self.floor = copy_into;
-        }
+        changes
+            .into_iter()
+            .for_each(|(i, j)| self.floor[i][j] = self.floor[i][j].swap());
 
         change
     }
@@ -178,11 +218,13 @@ fn part2(mut world: World) -> usize {
 pub fn run() -> (usize, usize, Duration) {
     let start = Instant::now();
     let world = load_world(INPUT);
+    // println!("{:?}", start.elapsed());
     let p1 = part1(world.clone());
+    // println!("{:?}", start.elapsed());
     let p2 = part2(world.clone());
-    let done = Instant::now();
+    // println!("{:?}", start.elapsed());
 
-    (p1, p2, done - start)
+    (p1, p2, start.elapsed())
 }
 
 #[cfg(test)]
@@ -211,24 +253,5 @@ L.LLLLL.LL";
         let world = load_world(s);
         assert_eq!(part1(world.clone()), 37);
         assert_eq!(part2(world.clone()), 26);
-    }
-
-    #[test]
-    fn test_sight() {
-        let s = ".##.##.
-#.#.#.#
-##...##
-...L...
-##...##
-#.#.#.#
-.##.##.";
-        let world = load_world(s);
-        for c in world.line_of_sight.chunks(7) {
-            for v in c {
-                print!("{} ", v.len());
-            }
-            println!();
-        }
-        assert_eq!(world.line_of_sight[3 * world.w + 2].len(), 0);
     }
 }

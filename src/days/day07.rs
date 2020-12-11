@@ -147,9 +147,8 @@ pub fn run() -> (usize, usize, Duration) {
     let tree = BagTree::new(INPUT);
     let p1 = part1(&tree);
     let p2 = part2(&tree);
-    let done = Instant::now();
 
-    (p1, p2, done - start)
+    (p1, p2, start.elapsed())
 }
 
 #[cfg(test)]

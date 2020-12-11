@@ -51,9 +51,8 @@ pub fn run() -> (usize, usize, Duration) {
     let start = Instant::now();
     let p1 = part1(&STATIC_NUMBERS);
     let p2 = part2(&STATIC_NUMBERS);
-    let done = Instant::now();
 
-    (p1, p2, done - start)
+    (p1, p2, start.elapsed())
 }
 
 #[cfg(test)]
