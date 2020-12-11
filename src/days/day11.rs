@@ -2,17 +2,6 @@ use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/11.txt");
 
-const ORDINALS: [(i64, i64); 8] = [
-    (0, 1),
-    (0, -1),
-    (1, 0),
-    (-1, 0),
-    (1, 1),
-    (1, -1),
-    (-1, 1),
-    (-1, -1),
-];
-
 #[derive(Copy, Clone, PartialEq, Debug)]
 enum Tile {
     Floor,
@@ -35,74 +24,44 @@ enum SightMode {
     LineOfSight,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct World {
-    a: Vec<Vec<Tile>>,
-    b: Vec<Vec<Tile>>,
+    floor: Vec<Vec<Tile>>,
     first: bool,
+    line_of_sight: Vec<Vec<Vec<(usize, usize)>>>,
 }
 
 impl World {
     fn iterate(&mut self, trigger: usize, sight_mode: SightMode) -> bool {
         let mut change = false;
+        let mut copy_into = self.floor.clone();
 
-        let mut changes = Vec::new();
-
-        if self.first {
-            for (i, row) in self.a.iter().enumerate() {
-                for (j, tile) in row.iter().enumerate() {
-                    let occupied = match sight_mode {
-                        SightMode::Surrounding => self.surrounding(i, j),
-                        SightMode::LineOfSight => self.line_of_sight(i, j),
-                    };
-                    if let Some(next) = tile.next(occupied, trigger) {
-                        self.b[i][j] = next;
-                        changes.push((i, j));
-                        change = true;
-                    }
+        for (i, row) in self.floor.iter().enumerate() {
+            for (j, tile) in row.iter().enumerate() {
+                let occupied = match sight_mode {
+                    SightMode::Surrounding => self.surrounding(i, j),
+                    SightMode::LineOfSight => self.line_of_sight[i][j]
+                        .iter()
+                        .filter(|(x, y)| self.floor[*x][*y] == Tile::Occupied)
+                        .count(),
+                };
+                if let Some(next) = tile.next(occupied, trigger) {
+                    copy_into[i][j] = next;
+                    change = true;
                 }
-            }
-
-            for (i, j) in changes.into_iter() {
-                self.a[i][j] = self.b[i][j];
-            }
-        } else {
-            for (i, row) in self.b.iter().enumerate() {
-                for (j, tile) in row.iter().enumerate() {
-                    let occupied = match sight_mode {
-                        SightMode::Surrounding => self.surrounding(i, j),
-                        SightMode::LineOfSight => self.line_of_sight(i, j),
-                    };
-                    if let Some(next) = tile.next(occupied, trigger) {
-                        self.a[i][j] = next;
-                        changes.push((i, j));
-                        change = true;
-                    }
-                }
-            }
-
-            for (i, j) in changes.into_iter() {
-                self.b[i][j] = self.a[i][j];
             }
         }
 
         if change {
             self.first = !self.first;
+            self.floor = copy_into;
         }
 
         change
     }
 
-    fn curr(&self) -> &Vec<Vec<Tile>> {
-        if self.first {
-            &self.a
-        } else {
-            &self.b
-        }
-    }
-
     fn occupied(&self) -> usize {
-        self.curr()
+        self.floor
             .iter()
             .flat_map(|row| row.iter())
             .filter(|&t| *t == Tile::Occupied)
@@ -111,44 +70,75 @@ impl World {
 
     fn surrounding(&self, i: usize, j: usize) -> usize {
         let mut occupied = 0;
-        let curr = self.curr();
 
-        for &(dx, dy) in ORDINALS.iter() {
-            let nx = i as i64 + dx;
-            let ny = j as i64 + dy;
-            if nx < 0 || ny < 0 || nx >= curr.len() as i64 || ny >= curr[0].len() as i64 {
-                continue;
-            }
-            if curr[nx as usize][ny as usize] == Tile::Occupied {
+        if i > 0 {
+            if j > 0 && self.floor[i - 1][j - 1] == Tile::Occupied {
                 occupied += 1;
             }
+
+            if self.floor[i - 1][j] == Tile::Occupied {
+                occupied += 1;
+            }
+
+            if j < self.floor[0].len() - 1 && self.floor[i - 1][j + 1] == Tile::Occupied {
+                occupied += 1;
+            }
+        }
+
+        if i < self.floor.len() - 1 {
+            if j > 0 && self.floor[i + 1][j - 1] == Tile::Occupied {
+                occupied += 1;
+            }
+
+            if self.floor[i + 1][j] == Tile::Occupied {
+                occupied += 1;
+            }
+
+            if j < self.floor[0].len() - 1 && self.floor[i + 1][j + 1] == Tile::Occupied {
+                occupied += 1;
+            }
+        }
+
+        if j > 0 && self.floor[i][j - 1] == Tile::Occupied {
+            occupied += 1;
+        }
+
+        if j < self.floor[0].len() - 1 && self.floor[i][j + 1] == Tile::Occupied {
+            occupied += 1;
         }
 
         occupied
     }
 
-    fn line_of_sight(&self, i: usize, j: usize) -> usize {
-        let mut occupied = 0;
-        let curr = self.curr();
+    fn gen_line_of_sight_options(&mut self) {
+        for i in 0..self.floor.len() {
+            let mut row = Vec::new();
+            for j in 0..self.floor[0].len() {
+                let mut ind = Vec::new();
 
-        for &(dx, dy) in ORDINALS.iter() {
-            let mut nx = i as i64 + dx;
-            let mut ny = j as i64 + dy;
-            while nx >= 0 && ny >= 0 && nx < curr.len() as i64 && ny < curr[0].len() as i64 {
-                match curr[nx as usize][ny as usize] {
-                    Tile::Occupied => {
-                        occupied += 1;
-                        break;
+                for &(dx, dy) in ORDINALS.iter() {
+                    let mut nx = i as i64 + dx;
+                    let mut ny = j as i64 + dy;
+                    while nx >= 0
+                        && ny >= 0
+                        && nx < self.floor.len() as i64
+                        && ny < self.floor[0].len() as i64
+                    {
+                        match self.floor[nx as usize][ny as usize] {
+                            Tile::Occupied | Tile::Empty => {
+                                ind.push((nx as usize, ny as usize));
+                                break;
+                            }
+                            _ => (),
+                        }
+                        nx += dx;
+                        ny += dy;
                     }
-                    Tile::Empty => break,
-                    _ => (),
                 }
-                nx += dx;
-                ny += dy;
+                row.push(ind);
             }
+            self.line_of_sight.push(row);
         }
-
-        occupied
     }
 }
 
@@ -160,17 +150,19 @@ fn load_world(input: &str) -> World {
                 .map(|c| match c {
                     'L' => Tile::Empty,
                     '.' => Tile::Floor,
+                    '#' => Tile::Occupied,
                     _ => panic!("bad input: {}", c),
                 })
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
-    let second = contents.clone();
-    World {
-        a: contents,
-        b: second,
+    let mut world = World {
+        floor: contents,
         first: true,
-    }
+        line_of_sight: Vec::new(),
+    };
+    world.gen_line_of_sight_options();
+    world
 }
 
 fn part1(mut world: World) -> usize {
@@ -205,7 +197,7 @@ mod test {
     }
 
     #[test]
-    fn test_p1() {
+    fn test_example() {
         let s = "L.LL.LL.LL
 LLLLLLL.LL
 L.L.L..L..
@@ -217,6 +209,26 @@ LLLLLLLLLL
 L.LLLLLL.L
 L.LLLLL.LL";
         let world = load_world(s);
-        assert_eq!(part1(world), 37);
+        assert_eq!(part1(world.clone()), 37);
+        assert_eq!(part2(world.clone()), 26);
+    }
+
+    #[test]
+    fn test_sight() {
+        let s = ".##.##.
+#.#.#.#
+##...##
+...L...
+##...##
+#.#.#.#
+.##.##.";
+        let world = load_world(s);
+        for c in world.line_of_sight.chunks(7) {
+            for v in c {
+                print!("{} ", v.len());
+            }
+            println!();
+        }
+        assert_eq!(world.line_of_sight[3 * world.w + 2].len(), 0);
     }
 }

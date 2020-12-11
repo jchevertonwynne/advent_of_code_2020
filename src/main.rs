@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate lazy_static;
 
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 mod common;
 mod days;
@@ -63,7 +63,7 @@ fn main() {
         }
     }
 
-    let start = Instant::now();
+    let mut cum_duration = Duration::default();
 
     for action in actions {
         match action {
@@ -74,6 +74,7 @@ fn main() {
                 println!("    part 1: {}", p1);
                 println!("    part 2: {}", p2);
                 println!("    time:   {:?}", duration);
+                cum_duration += duration;
             }
             Runnable::Range(first, last) => {
                 for i in first..=last {
@@ -83,6 +84,7 @@ fn main() {
                     println!("    part 1: {}", p1);
                     println!("    part 2: {}", p2);
                     println!("    time:   {:?}", duration);
+                    cum_duration += duration;
                 }
             }
             Runnable::Repeat(i, repeats) => {
@@ -100,6 +102,7 @@ fn main() {
                     running += duration;
                     min = Duration::min(min, duration);
                     max = Duration::max(max, duration);
+                    cum_duration += duration;
                 }
                 println!("times:");
                 println!("    minimum: {:?}", min);
@@ -109,7 +112,6 @@ fn main() {
         }
     }
 
-    let end = Instant::now();
     println!();
-    println!("total runtime: {:?}", end - start);
+    println!("total runtime: {:?}", cum_duration);
 }
