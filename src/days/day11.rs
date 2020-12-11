@@ -20,16 +20,6 @@ enum Tile {
     Empty,
 }
 
-impl Tile {
-    fn swap(&self) -> Tile {
-        match self {
-            Tile::Occupied => Tile::Empty,
-            Tile::Empty => Tile::Occupied,
-            Tile::Floor => Tile::Floor,
-        }
-    }
-}
-
 enum SightMode {
     Surrounding,
     LineOfSight,
@@ -39,14 +29,13 @@ enum SightMode {
 struct World {
     floor: Vec<Vec<Tile>>,
     first: bool,
+    to_apply: Vec<(usize, usize)>,
     line_of_sight: Vec<Vec<Vec<(usize, usize)>>>,
 }
 
 impl World {
     fn iterate(&mut self, trigger: usize, sight_mode: SightMode) -> bool {
         let mut change = false;
-
-        let mut changes = Vec::new();
 
         for (i, row) in self.floor.iter().enumerate() {
             for (j, tile) in row.iter().enumerate() {
@@ -55,7 +44,7 @@ impl World {
                     Tile::Occupied => match sight_mode {
                         SightMode::Surrounding => {
                             if self.surrounding(i, j) >= trigger {
-                                changes.push((i, j));
+                                self.to_apply.push((i, j));
                                 change = true;
                             }
                         }
@@ -67,7 +56,7 @@ impl World {
                                     .count()
                                     >= trigger
                             {
-                                changes.push((i, j));
+                                self.to_apply.push((i, j));
                                 change = true;
                             }
                         }
@@ -75,7 +64,7 @@ impl World {
                     Tile::Empty => match sight_mode {
                         SightMode::Surrounding => {
                             if self.surrounding(i, j) == 0 {
-                                changes.push((i, j));
+                                self.to_apply.push((i, j));
                                 change = true;
                             }
                         }
@@ -84,7 +73,7 @@ impl World {
                                 .iter()
                                 .all(|(x, y)| self.floor[*x][*y] != Tile::Occupied)
                             {
-                                changes.push((i, j));
+                                self.to_apply.push((i, j));
                                 change = true;
                             }
                         }
@@ -93,9 +82,13 @@ impl World {
             }
         }
 
-        changes
-            .into_iter()
-            .for_each(|(i, j)| self.floor[i][j] = self.floor[i][j].swap());
+        while let Some((i, j)) = self.to_apply.pop() {
+            self.floor[i][j] = match self.floor[i][j] {
+                Tile::Floor => panic!("omg"),
+                Tile::Occupied => Tile::Empty,
+                Tile::Empty => Tile::Occupied,
+            }
+        }
 
         change
     }
@@ -196,9 +189,11 @@ fn load_world(input: &str) -> World {
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
+    let size = contents.len() * contents[0].len();
     let mut world = World {
         floor: contents,
         first: true,
+        to_apply: Vec::with_capacity(size),
         line_of_sight: Vec::new(),
     };
     world.gen_line_of_sight_options();
