@@ -1,6 +1,6 @@
 use core::str::Split;
 use std::convert::TryFrom;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/02.txt");
 
@@ -81,15 +81,12 @@ fn solve(input: &str) -> (usize, usize) {
         })
 }
 
-pub fn run() {
+pub fn run() -> (usize, usize, Duration) {
     let start = Instant::now();
     let (p1, p2) = solve(INPUT);
     let end = Instant::now();
 
-    println!("    part 1: {}", p1);
-    println!("    part 2: {}", p2);
-    println!("time taken:");
-    println!("    total: {:?}", end.duration_since(start));
+    (p1, p2, end - start)
 }
 
 #[cfg(test)]

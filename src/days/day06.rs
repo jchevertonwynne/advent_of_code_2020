@@ -1,5 +1,5 @@
 use std::ops::{BitAnd, BitOr};
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/06.txt");
 
@@ -19,15 +19,12 @@ fn solve_both(input: &str) -> (usize, usize) {
         .fold((0, 0), |(a, b), (c, d)| (a + c, b + d))
 }
 
-pub fn run() {
+pub fn run() -> (usize, usize, Duration) {
     let start = Instant::now();
     let (p1, p2) = solve_both(INPUT);
-    let end = Instant::now();
+    let done = Instant::now();
 
-    println!("    part 1: {}", p1);
-    println!("    part 2: {}", p2);
-    println!("time taken:");
-    println!("    total: {:?}", end.duration_since(start));
+    (p1, p2, done - start)
 }
 
 #[cfg(test)]

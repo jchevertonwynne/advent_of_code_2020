@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/05.txt");
 
@@ -7,6 +7,7 @@ fn solve(input: &str) -> (usize, usize) {
     let mut p2 = 0;
     let mut smallest = usize::max_value();
     let mut largest = usize::min_value();
+
     input
         .lines()
         .map(|line| {
@@ -38,15 +39,12 @@ fn solve(input: &str) -> (usize, usize) {
     (p1, p2)
 }
 
-pub fn run() {
+pub fn run() -> (usize, usize, Duration) {
     let start = Instant::now();
     let (p1, p2) = solve(INPUT);
-    let end = Instant::now();
+    let done = Instant::now();
 
-    println!("    part 1: {}", p1);
-    println!("    part 2: {}", p2);
-    println!("time taken:");
-    println!("    total: {:?}", end.duration_since(start));
+    (p1, p2, done - start)
 }
 
 #[cfg(test)]

@@ -1,6 +1,10 @@
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/10.txt");
+
+lazy_static! {
+    static ref PRECOMPUTED_INPUT: Vec<usize> = load_input(INPUT);
+}
 
 fn load_input(input: &str) -> Vec<usize> {
     let mut res = input
@@ -23,7 +27,6 @@ fn solve(nums: &[usize]) -> (usize, usize) {
             1 => {
                 ones += 1;
                 consec += 1;
-
             }
             3 => {
                 threes += 1;
@@ -34,11 +37,11 @@ fn solve(nums: &[usize]) -> (usize, usize) {
                     3 => 4,
                     4 => 7,
                     5 => 13,
-                    _ => panic!("lol1")
+                    _ => panic!("lol1"),
                 };
                 consec = 0;
             }
-            _ => panic!("lol2")
+            _ => panic!("lol2"),
         }
         last = *num;
     }
@@ -50,31 +53,24 @@ fn solve(nums: &[usize]) -> (usize, usize) {
         3 => 4,
         4 => 7,
         5 => 13,
-        _ => panic!("lol1")
+        _ => panic!("lol1"),
     };
 
     threes += 1;
     (ones * threes, p2)
 }
 
-pub fn run() {
+pub fn run() -> (usize, usize, Duration) {
     let start = Instant::now();
-    let jolts = load_input(INPUT);
-    let data_loaded = Instant::now();
-    let (p1, p2) = solve(&jolts);
+    let (p1, p2) = solve(&PRECOMPUTED_INPUT);
     let done = Instant::now();
 
-    println!("    part 1: {}", p1);
-    println!("    part 2: {}", p2);
-    println!("time taken:");
-    println!("    total: {:?}", done.duration_since(start));
-    println!("    data load: {:?}", data_loaded.duration_since(start));
-    println!("    parts: {:?}", done.duration_since(data_loaded));
+    (p1, p2, done - start)
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::days::day10::{load_input, INPUT, solve};
+    use crate::days::day10::{load_input, solve, INPUT};
 
     #[test]
     fn test_actual() {

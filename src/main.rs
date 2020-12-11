@@ -1,71 +1,114 @@
-use std::time::Instant;
+#[macro_use]
+extern crate lazy_static;
 
+use std::time::{Duration, Instant};
+
+mod common;
 mod days;
+
+enum Runnable {
+    Single(usize),
+    Range(usize, usize),
+    Repeat(usize, usize),
+}
 
 fn main() {
     let opts = [
-        || days::day1::run(),
-        || days::day2::run(),
-        || days::day3::run(),
-        || days::day4::run(),
-        || days::day5::run(),
-        || days::day6::run(),
-        || days::day7::run(),
-        || days::day8::run(),
-        || days::day9::run(),
+        || days::day01::run(),
+        || days::day02::run(),
+        || days::day03::run(),
+        || days::day04::run(),
+        || days::day05::run(),
+        || days::day06::run(),
+        || days::day07::run(),
+        || days::day08::run(),
+        || days::day09::run(),
         || days::day10::run(),
     ];
 
     let args = std::env::args().skip(1).collect::<Vec<_>>();
 
-    let start = Instant::now();
+    let mut actions = Vec::new();
+
     for arg in args {
         if arg.contains(':') {
             let parts = arg.split(':').collect::<Vec<_>>();
+            if parts.len() != 2 {
+                println!("too many parts: {}", arg);
+                continue;
+            }
             match parts[0].parse::<usize>() {
-                Ok(i) => match parts.len() {
-                    1 => {
-                        println!("-------------------------");
-                        println!("{}", format!("day {}", i));
-                        opts[i - 1]();
-                    }
-                    2 => match parts[1].parse::<usize>() {
-                        Ok(j) => {
-                            for _ in 0..j {
-                                println!("-------------------------");
-                                println!("{}", format!("day {} run {}", i, j));
-                                opts[i - 1]();
-                            }
-                        }
-                        _ => println!("illegal quantifier: {}", arg),
-                    },
-                    _ => panic!("what"),
+                Ok(i) if i > 0 && i <= opts.len() => match parts[1].parse::<usize>() {
+                    Ok(repeats) => actions.push(Runnable::Repeat(i, repeats)),
+                    _ => println!("illegal value for repeats: {}", arg),
                 },
-                _ => println!("illegal arg: {}", arg),
+                _ => println!("illegal repeats arg: {}", arg),
             }
         } else if arg.contains('-') {
             let parts = arg.split('-').collect::<Vec<_>>();
             match (parts[0].parse::<usize>(), parts[1].parse::<usize>()) {
-                (Ok(a), Ok(b)) => {
-                    for i in a..=b {
-                        println!("-------------------------");
-                        println!("{}", format!("day {}", i));
-                        opts[i - 1]();
-                    }
+                (Ok(a), Ok(b)) if a > 0 && a <= opts.len() && b > 0 && b <= opts.len() && a < b => {
+                    actions.push(Runnable::Range(a, b))
                 }
                 _ => println!("invalid range: {}", arg),
             }
         } else {
             match arg.parse::<usize>() {
-                Ok(i) => {
-                    println!("-------------------------");
-                    println!("{}", format!("day {}", i));
-                    opts[i - 1]();
+                Ok(i) if i > 0 && i <= opts.len() => {
+                    actions.push(Runnable::Single(i));
                 }
                 _ => println!("invalid range: {}", arg),
             }
         }
     }
+
+    let start = Instant::now();
+
+    for action in actions {
+        match action {
+            Runnable::Single(i) => {
+                let (p1, p2, duration) = opts[i - 1]();
+                println!();
+                println!("{}", format!("day {}", i));
+                println!("    part1: {}", p1);
+                println!("    part2: {}", p2);
+                println!("    time:  {:?}", duration);
+            }
+            Runnable::Range(first, last) => {
+                for i in first..=last {
+                    let (p1, p2, duration) = opts[i - 1]();
+                    println!();
+                    println!("{}", format!("day {}", i));
+                    println!("    part1: {}", p1);
+                    println!("    part2: {}", p2);
+                    println!("    time:  {:?}", duration);
+                }
+            }
+            Runnable::Repeat(i, repeats) => {
+                let mut min = Duration::from_secs(100000);
+                let mut max = Duration::default();
+                let mut running = Duration::default();
+                println!();
+                println!("{}", format!("day {} - {} runs", i, repeats));
+                for rep in 0..repeats {
+                    let (p1, p2, duration) = opts[i - 1]();
+                    if rep == 0 {
+                        println!("    part 1: {}", p1);
+                        println!("    part 2: {}", p2);
+                    }
+                    running += duration;
+                    min = Duration::min(min, duration);
+                    max = Duration::max(max, duration);
+                }
+                println!("times:");
+                println!("    minimum: {:?}", min);
+                println!("    average: {:?}", running / repeats as u32);
+                println!("    maximum: {:?}", max);
+            }
+        }
+    }
+
     let end = Instant::now();
-    println!("{:?}", end - start);
+    println!();
+    println!("total runtime: {:?}", end - start);
 }

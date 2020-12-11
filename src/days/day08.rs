@@ -1,5 +1,5 @@
-use crate::days::machine::Machine;
-use std::time::Instant;
+use crate::common::machine::Machine;
+use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/08.txt");
 
@@ -20,28 +20,20 @@ fn part2(machine: &mut Machine) -> i64 {
         .expect("one solution")
 }
 
-pub fn run() {
+pub fn run() -> (usize, usize, Duration) {
     let start = Instant::now();
     let mut machine = INPUT.parse::<Machine>().expect("please be a machine");
-    let data_loaded = Instant::now();
     let p1 = part1(&mut machine);
-    let done_part1 = Instant::now();
     let p2 = part2(&mut machine);
-    let done_part2 = Instant::now();
+    let done = Instant::now();
 
-    println!("    part 1: {}", p1);
-    println!("    part 2: {}", p2);
-    println!("time taken:");
-    println!("    total: {:?}", done_part2.duration_since(start));
-    println!("    data load: {:?}", data_loaded.duration_since(start));
-    println!("    part 1: {:?}", done_part1.duration_since(data_loaded));
-    println!("    part 2: {:?}", done_part2.duration_since(done_part1));
+    (p1 as usize, p2 as usize, done - start)
 }
 
 #[cfg(test)]
 mod test {
-    use crate::days::day8::{part1, part2, INPUT};
-    use crate::days::machine::Machine;
+    use crate::common::machine::Machine;
+    use crate::days::day08::{part1, part2, INPUT};
 
     #[test]
     fn test_parts() {

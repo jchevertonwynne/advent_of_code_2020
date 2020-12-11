@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::ptr::slice_from_raw_parts;
 use std::rc::{Rc, Weak};
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/07.txt");
 
@@ -36,8 +36,6 @@ unsafe fn get_rest_of_string<'a>(full: &'a str, start: &'a str) -> &'a str {
 
 impl BagTree<'_> {
     fn new(input: &str) -> BagTree {
-        let start = Instant::now();
-
         let colour_and_children: Vec<(&str, &str)> = input
             .lines()
             .map(|rule| {
@@ -53,9 +51,6 @@ impl BagTree<'_> {
             })
             .collect();
 
-        let step_1 = Instant::now();
-        println!("get colours and children: {:?}", step_1 - start);
-
         let mut nodes = HashMap::with_capacity(colour_and_children.len());
         colour_and_children.iter().for_each(|&(colour, _)| {
             nodes.insert(
@@ -67,9 +62,6 @@ impl BagTree<'_> {
                 }),
             );
         });
-
-        let step_2 = Instant::now();
-        println!("create hashmap: {:?}", step_2 - step_1);
 
         colour_and_children
             .into_iter()
@@ -102,9 +94,6 @@ impl BagTree<'_> {
 
                 parent.children.borrow_mut().extend(children);
             });
-
-        let step_3 = Instant::now();
-        println!("populated hashmap: {:?}", step_3 - step_2);
 
         BagTree { nodes }
     }
@@ -153,22 +142,14 @@ fn part2(tree: &BagTree) -> usize {
         .children()
 }
 
-pub fn run() {
+pub fn run() -> (usize, usize, Duration) {
     let start = Instant::now();
     let tree = BagTree::new(INPUT);
-    let data_loaded = Instant::now();
     let p1 = part1(&tree);
-    let done_part1 = Instant::now();
     let p2 = part2(&tree);
-    let done_part2 = Instant::now();
+    let done = Instant::now();
 
-    println!("    part 1: {}", p1);
-    println!("    part 2: {}", p2);
-    println!("time taken:");
-    println!("    total: {:?}", done_part2.duration_since(start));
-    println!("    data load: {:?}", data_loaded.duration_since(start));
-    println!("    part 1: {:?}", done_part1.duration_since(data_loaded));
-    println!("    part 2: {:?}", done_part2.duration_since(done_part1));
+    (p1, p2, done - start)
 }
 
 #[cfg(test)]

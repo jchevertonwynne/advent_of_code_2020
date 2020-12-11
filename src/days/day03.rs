@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/03.txt");
 
@@ -37,22 +37,14 @@ fn part2(trees: &Trees) -> usize {
         .product()
 }
 
-pub fn run() {
+pub fn run() -> (usize, usize, Duration) {
     let start = Instant::now();
     let trees = load_trees(INPUT);
-    let data_loaded = Instant::now();
     let p1 = part1(&trees, 3, 1);
-    let done_part1 = Instant::now();
     let p2 = part2(&trees);
-    let done_part2 = Instant::now();
+    let done = Instant::now();
 
-    println!("    part 1: {}", p1);
-    println!("    part 2: {}", p2);
-    println!("time taken:");
-    println!("    total: {:?}", done_part2.duration_since(start));
-    println!("    data load: {:?}", data_loaded.duration_since(start));
-    println!("    part 1: {:?}", done_part1.duration_since(data_loaded));
-    println!("    part 2: {:?}", done_part2.duration_since(done_part1));
+    (p1, p2, done - start)
 }
 
 #[cfg(test)]
