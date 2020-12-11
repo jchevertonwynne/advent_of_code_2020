@@ -62,13 +62,13 @@ mod tests {
 
     #[test]
     fn part1_test() {
-        let numbers = load_numbers();
+        let numbers = load_numbers(INPUT);
         assert_eq!(part1(&numbers), 319531)
     }
 
     #[test]
     fn part2_test() {
-        let numbers = load_numbers();
+        let numbers = load_numbers(INPUT);
         assert_eq!(part2(&numbers), 244300320)
     }
 }
