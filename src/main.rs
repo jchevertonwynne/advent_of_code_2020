@@ -12,19 +12,22 @@ enum Runnable {
     Repeat(usize, usize),
 }
 
+type RunFunc = fn() -> (usize, usize, Duration);
+
 fn main() {
-    let opts: [Box<fn() -> (usize, usize, Duration)>; 11] = [
-        Box::new(|| days::day01::run()),
-        Box::new(|| days::day02::run()),
-        Box::new(|| days::day03::run()),
-        Box::new(|| days::day04::run()),
-        Box::new(|| days::day05::run()),
-        Box::new(|| days::day06::run()),
-        Box::new(|| days::day07::run()),
-        Box::new(|| days::day08::run()),
-        Box::new(|| days::day09::run()),
-        Box::new(|| days::day10::run()),
-        Box::new(|| days::day11::run()),
+    let opts: Vec<RunFunc> = vec![
+        || days::day01::run(),
+        || days::day02::run(),
+        || days::day03::run(),
+        || days::day04::run(),
+        || days::day05::run(),
+        || days::day06::run(),
+        || days::day07::run(),
+        || days::day08::run(),
+        || days::day09::run(),
+        || days::day10::run(),
+        || days::day11::run(),
+        || days::day12::run(),
     ];
 
     let args = std::env::args().skip(1);

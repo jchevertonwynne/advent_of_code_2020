@@ -2,6 +2,10 @@ use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/11.txt");
 
+lazy_static! {
+    static ref STATIC_WORLD: World = load_world(INPUT);
+}
+
 const ORDINALS: [(i64, i64); 8] = [
     (0, 1),
     (0, -1),
@@ -212,12 +216,8 @@ fn part2(mut world: World) -> usize {
 
 pub fn run() -> (usize, usize, Duration) {
     let start = Instant::now();
-    let world = load_world(INPUT);
-    // println!("{:?}", start.elapsed());
-    let p1 = part1(world.clone());
-    // println!("{:?}", start.elapsed());
-    let p2 = part2(world.clone());
-    // println!("{:?}", start.elapsed());
+    let p1 = part1(STATIC_WORLD.clone());
+    let p2 = part2(STATIC_WORLD.clone());
 
     (p1, p2, start.elapsed())
 }
