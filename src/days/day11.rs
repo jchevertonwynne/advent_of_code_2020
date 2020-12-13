@@ -1,3 +1,4 @@
+use arrayvec::ArrayVec;
 use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/11.txt");
@@ -34,7 +35,7 @@ struct World {
     floor: Vec<Vec<Tile>>,
     first: bool,
     to_apply: Vec<(usize, usize)>,
-    line_of_sight: Vec<Vec<Vec<(usize, usize)>>>,
+    line_of_sight: Vec<Vec<ArrayVec<[(usize, usize); 8]>>>,
 }
 
 impl World {
@@ -151,7 +152,7 @@ impl World {
         for i in 0..self.floor.len() {
             let mut row = Vec::new();
             for j in 0..self.floor[0].len() {
-                let mut ind = Vec::new();
+                let mut ind = ArrayVec::new();
 
                 for &(dx, dy) in ORDINALS.iter() {
                     let mut nx = i as i64 + dx;

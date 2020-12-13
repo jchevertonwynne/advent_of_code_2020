@@ -14,8 +14,8 @@ enum Instruction {
 
 enum Direction {
     North,
-    East,
     South,
+    East,
     West,
 }
 
@@ -23,8 +23,8 @@ impl Direction {
     fn left(&self) -> Direction {
         match self {
             Direction::North => Direction::West,
-            Direction::East => Direction::North,
             Direction::South => Direction::East,
+            Direction::East => Direction::North,
             Direction::West => Direction::South,
         }
     }
@@ -32,8 +32,8 @@ impl Direction {
     fn right(&self) -> Direction {
         match self {
             Direction::North => Direction::East,
-            Direction::East => Direction::South,
             Direction::South => Direction::West,
+            Direction::East => Direction::South,
             Direction::West => Direction::North,
         }
     }
@@ -71,8 +71,8 @@ fn part1(instructions: &[Instruction]) -> usize {
             Instruction::West(i) => x -= i,
             Instruction::Forward(i) => match direction {
                 Direction::North => y += i,
-                Direction::East => x += i,
                 Direction::South => y -= i,
+                Direction::East => x += i,
                 Direction::West => x -= i,
             },
             Instruction::Left(l) => {
