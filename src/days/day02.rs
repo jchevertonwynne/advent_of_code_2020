@@ -72,13 +72,8 @@ fn solve(input: &str) -> (usize, usize) {
     input
         .lines()
         .map(|line| Entry::try_from(line).expect("should be valid input"))
-        .map(|entry| (entry.valid(), entry.alt_valid()))
-        .fold((0, 0), |(a, b), status| match status {
-            (true, true) => (a + 1, b + 1),
-            (true, false) => (a + 1, b),
-            (false, true) => (a, b + 1),
-            (false, false) => (a, b),
-        })
+        .map(|entry| (entry.valid() as usize, entry.alt_valid() as usize))
+        .fold((0, 0), |(a, b), (c, d)| (a + c, b + d))
 }
 
 pub fn run() -> (usize, usize, Duration) {

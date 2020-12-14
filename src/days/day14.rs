@@ -4,6 +4,10 @@ use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/14.txt");
 
+lazy_static! {
+    static ref STATIC_INPUT: Vec<InputLine> = load_program(INPUT);
+}
+
 #[derive(Debug, Copy, Clone)]
 enum Mask {
     Unset,
@@ -84,7 +88,7 @@ fn applier(
 ) {
     if ind == mask.len() {
         mem.insert(addr, val);
-        return;
+        return
     }
 
     match mask[ind] {
@@ -119,17 +123,23 @@ fn part2(instructions: &[InputLine]) -> usize {
 
 pub fn run() -> (usize, usize, Duration) {
     let start = Instant::now();
-    let instructions = load_program(INPUT);
-    let p1 = part1(&instructions);
-    let p2 = part2(&instructions);
+    let p1 = part1(&STATIC_INPUT);
+    let p2 = part2(&STATIC_INPUT);
 
     (p1, p2, start.elapsed())
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::days::day14::{applier, load_program, part1, part2, InputLine};
+    use crate::days::day14::{applier, load_program, part1, InputLine, INPUT, part2};
     use std::collections::HashMap;
+
+    #[test]
+    fn test_actual() {
+        let ins = load_program(INPUT);
+        assert_eq!(part1(&ins), 15018100062885);
+        assert_eq!(part2(&ins), 5724245857696);
+    }
 
     #[test]
     fn test_example() {
