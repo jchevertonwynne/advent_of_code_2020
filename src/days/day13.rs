@@ -31,18 +31,15 @@ fn part1(timestamp: usize, busses: &[Option<usize>]) -> usize {
 }
 
 fn part2(busses: &[Option<usize>]) -> usize {
-    let offsets = busses
+    let (indices, bus_ids): (Vec<_>, Vec<_>) = busses
         .iter()
         .enumerate()
         .filter_map(|(offset, bus_id)| bus_id.map(|id| (offset as i128, id as i128)))
-        .collect::<Vec<_>>();
+        .unzip();
 
-    let i = offsets.iter().map(|&i| i.0).collect::<Vec<_>>();
-    let v = offsets.iter().map(|&i| i.1).collect::<Vec<_>>();
+    let mut res = ring_algorithm::chinese_remainder_theorem(&indices, &bus_ids).expect("pls");
 
-    let mut res = ring_algorithm::chinese_remainder_theorem(&i, &v).expect("pls");
-
-    let product = v.iter().product::<i128>();
+    let product = bus_ids.iter().product::<i128>();
 
     if res < 0 {
         res += product;
@@ -68,6 +65,7 @@ mod tests {
     fn test_actual() {
         let (timestamp, busses) = load_busses(INPUT);
         assert_eq!(part1(timestamp, &busses), 174);
+        assert_eq!(part2(&busses), 780601154795940)
     }
 
     #[test]

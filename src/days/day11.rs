@@ -30,12 +30,14 @@ enum SightMode {
     LineOfSight,
 }
 
+type LineOfSightOptions = ArrayVec<[(usize, usize); 8]>;
+
 #[derive(Clone, Debug)]
 struct World {
     floor: Vec<Vec<Tile>>,
     first: bool,
     to_apply: Vec<(usize, usize)>,
-    line_of_sight: Vec<Vec<ArrayVec<[(usize, usize); 8]>>>,
+    line_of_sight: Vec<Vec<LineOfSightOptions>>,
 }
 
 impl World {
