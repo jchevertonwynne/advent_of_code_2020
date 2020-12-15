@@ -71,8 +71,8 @@ mod test {
     #[test]
     fn actual_answers() {
         let nums = load_numbers(INPUT);
-        assert_eq!(part1(&nums, 25), 15690279);
-        assert_eq!(part2(&nums, 15690279), 2174232);
+        assert_eq!(part1(&nums, 25), 15_690_279);
+        assert_eq!(part2(&nums, 15_690_279), 2_174_232);
     }
 
     #[test]

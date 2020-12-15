@@ -1,6 +1,6 @@
 use std::time::{Duration, Instant};
 
-const GOAL: usize = 2020;
+const GOAL: usize = 2_020;
 
 lazy_static! {
     static ref STATIC_NUMBERS: Vec<usize> = load_numbers(INPUT);
@@ -62,12 +62,12 @@ mod tests {
     #[test]
     fn part1_test() {
         let numbers = load_numbers(INPUT);
-        assert_eq!(part1(&numbers), 319531)
+        assert_eq!(part1(&numbers), 319_531)
     }
 
     #[test]
     fn part2_test() {
         let numbers = load_numbers(INPUT);
-        assert_eq!(part2(&numbers), 244300320)
+        assert_eq!(part2(&numbers), 244_300_320)
     }
 }

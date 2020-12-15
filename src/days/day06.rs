@@ -32,6 +32,6 @@ mod tests {
 
     #[test]
     fn test_both() {
-        assert_eq!(solve_both(INPUT), (6297, 3158));
+        assert_eq!(solve_both(INPUT), (6_297, 3_158));
     }
 }

@@ -74,7 +74,7 @@ mod tests {
     #[test]
     fn test_actual() {
         let nums = load_input(INPUT);
-        assert_eq!(solve(&nums), (2484, 15790581481472));
+        assert_eq!(solve(&nums), (2_484, 15_790_581_481_472));
     }
 
     #[test]
@@ -129,6 +129,6 @@ mod tests {
 3",
         );
         nums.sort_unstable();
-        assert_eq!(solve(&nums), (220, 19208));
+        assert_eq!(solve(&nums), (220, 19_208));
     }
 }

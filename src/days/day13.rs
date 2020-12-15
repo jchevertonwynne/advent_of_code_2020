@@ -65,7 +65,7 @@ mod tests {
     fn test_actual() {
         let (timestamp, busses) = load_busses(INPUT);
         assert_eq!(part1(timestamp, &busses), 174);
-        assert_eq!(part2(&busses), 780601154795940)
+        assert_eq!(part2(&busses), 780_601_154_795_940)
     }
 
     #[test]

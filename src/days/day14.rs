@@ -137,8 +137,8 @@ mod tests {
     #[test]
     fn test_actual() {
         let ins = load_program(INPUT);
-        assert_eq!(part1(&ins), 15018100062885);
-        assert_eq!(part2(&ins), 5724245857696);
+        assert_eq!(part1(&ins), 15_018_100_062_885);
+        assert_eq!(part2(&ins), 5_724_245_857_696);
     }
 
     #[test]

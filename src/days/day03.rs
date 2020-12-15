@@ -59,6 +59,6 @@ mod tests {
     #[test]
     fn part2_test() {
         let trees = load_trees(INPUT);
-        assert_eq!(part2(&trees), 3952146825)
+        assert_eq!(part2(&trees), 3_952_146_825)
     }
 }

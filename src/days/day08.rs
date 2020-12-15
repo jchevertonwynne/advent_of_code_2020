@@ -37,7 +37,7 @@ mod test {
     #[test]
     fn test_parts() {
         let mut machine = INPUT.parse::<Machine>().expect("please be a machine");
-        assert_eq!(part1(&mut machine), 1671);
+        assert_eq!(part1(&mut machine), 1_671);
         machine.reset();
         assert_eq!(part2(&mut machine), 892);
     }

@@ -94,7 +94,7 @@ fn main() {
                 }
             }
             Runnable::Repeat(i, repeats) => {
-                let mut min = Duration::from_secs(100000);
+                let mut min = Duration::from_secs(100_000);
                 let mut max = Duration::default();
                 let mut running = Duration::default();
                 println!();

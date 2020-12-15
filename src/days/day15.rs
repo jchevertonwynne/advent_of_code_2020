@@ -11,10 +11,18 @@ enum Seen {
 
 impl Seen {
     fn insert(&mut self, val: usize) {
-        *self = match self {
+        *self = match *self {
             Seen::Never => Seen::Once(val),
-            Seen::Once(a) => Seen::Twice(*a, val),
-            Seen::Twice(_, a) => Seen::Twice(*a, val),
+            Seen::Once(a) => Seen::Twice(a, val),
+            Seen::Twice(_, a) => Seen::Twice(a, val),
+        }
+    }
+
+    fn ind_diff(&self) -> usize {
+        match self {
+            Seen::Never => panic!("dont do this pls"),
+            Seen::Once(_) => 0,
+            Seen::Twice(a, b) => b - a
         }
     }
 }
@@ -22,17 +30,13 @@ impl Seen {
 fn process(nums: &[usize], lim: usize) -> usize {
     let mut spoken: Vec<Seen> = vec![Seen::Never; lim];
     let mut last_spoken = 0;
+
     for i in 1..=lim {
         let next = if i <= nums.len() {
             nums[i - 1]
         } else {
-            match spoken[last_spoken] {
-                Seen::Never => panic!("no thanks"),
-                Seen::Once(_) => 0,
-                Seen::Twice(a, b) => b - a,
-            }
+            spoken[last_spoken].ind_diff()
         };
-
         spoken[next].insert(i);
         last_spoken = next;
     }
@@ -63,7 +67,7 @@ mod tests {
     #[test]
     fn test_actual() {
         assert_eq!(part1(&INPUT), 536);
-        assert_eq!(part2(&INPUT), 24065124);
+        assert_eq!(part2(&INPUT), 24_065_124);
     }
 
     #[test]
@@ -75,6 +79,6 @@ mod tests {
         assert_eq!(part1(&a), 10);
 
         let a = [3, 1, 2];
-        assert_eq!(part1(&a), 1836);
+        assert_eq!(part1(&a), 1_836);
     }
 }

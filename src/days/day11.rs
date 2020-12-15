@@ -232,8 +232,8 @@ mod test {
     #[test]
     fn test_actual() {
         let world = load_world(INPUT);
-        assert_eq!(part1(world.clone()), 2204);
-        assert_eq!(part2(world.clone()), 1986);
+        assert_eq!(part1(world.clone()), 2_204);
+        assert_eq!(part2(world.clone()), 1_986);
     }
 
     #[test]

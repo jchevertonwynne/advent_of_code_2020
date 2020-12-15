@@ -164,6 +164,6 @@ mod tests {
     #[test]
     fn test_part2() {
         let tree = BagTree::new(INPUT);
-        assert_eq!(part2(&tree), 10875);
+        assert_eq!(part2(&tree), 10_875);
     }
 }
