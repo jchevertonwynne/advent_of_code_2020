@@ -1,16 +1,24 @@
 use std::time::{Duration, Instant};
+use fnv::{FnvHashMap, FnvBuildHasher};
+use std::collections::HashMap;
 
 const INPUT: [u32; 6] = [1, 2, 16, 19, 18, 0];
 
 fn process(nums: &[u32], lim: u32) -> usize {
-    let mut spoken: Vec<(u32, u32)> = vec![(0, 0); lim as usize];
+    const SMALL_LIMIT: u32 = 1 << 22;
+    let mut spoken_small: Vec<(u32, u32)> = vec![(0, 0); SMALL_LIMIT as usize];
+    let mut spoken_large: HashMap<u32, (u32, u32), FnvBuildHasher> = FnvHashMap::with_capacity_and_hasher(1_400_000, FnvBuildHasher::default());
     let mut last_spoken = 0u32;
 
     for i in 1u32..=lim {
         let next = if i <= nums.len() as u32 {
             nums[(i - 1) as usize]
         } else {
-            let r = spoken[last_spoken as usize];
+            let r = if last_spoken < SMALL_LIMIT {
+                &spoken_small[last_spoken as usize]
+            } else {
+                spoken_large.entry(last_spoken).or_insert((0, 0))
+            };
             if r.0 == 0 {
                 0
             } else {
@@ -18,11 +26,17 @@ fn process(nums: &[u32], lim: u32) -> usize {
             }
         };
 
-        let r = &mut spoken[next as usize];
+        let r = if next < SMALL_LIMIT {
+            &mut spoken_small[next as usize]
+        } else {
+            spoken_large.entry(next).or_insert((0, 0))
+        };
         r.0 = std::mem::replace(&mut r.1, i);
 
         last_spoken = next;
     }
+
+    // println!("{}", spoken_large.len());
 
     last_spoken as usize
 }
