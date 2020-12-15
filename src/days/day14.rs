@@ -88,7 +88,7 @@ fn applier(
 ) {
     if ind == mask.len() {
         mem.insert(addr, val);
-        return
+        return;
     }
 
     match mask[ind] {
@@ -131,7 +131,7 @@ pub fn run() -> (usize, usize, Duration) {
 
 #[cfg(test)]
 mod tests {
-    use crate::days::day14::{applier, load_program, part1, InputLine, INPUT, part2};
+    use crate::days::day14::{applier, load_program, part1, part2, InputLine, INPUT};
     use std::collections::HashMap;
 
     #[test]
