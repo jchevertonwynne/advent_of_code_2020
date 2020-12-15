@@ -1,54 +1,37 @@
 use std::time::{Duration, Instant};
 
-const INPUT: [usize; 6] = [1, 2, 16, 19, 18, 0];
+const INPUT: [u32; 6] = [1, 2, 16, 19, 18, 0];
 
-#[derive(Clone)]
-enum Seen {
-    Never,
-    Once(usize),
-    Twice(usize, usize),
-}
+fn process(nums: &[u32], lim: u32) -> usize {
+    let mut spoken: Vec<(u32, u32)> = vec![(0, 0); lim as usize];
+    let mut last_spoken = 0u32;
 
-impl Seen {
-    fn insert(&mut self, val: usize) {
-        *self = match *self {
-            Seen::Never => Seen::Once(val),
-            Seen::Once(a) => Seen::Twice(a, val),
-            Seen::Twice(_, a) => Seen::Twice(a, val),
-        }
-    }
-
-    fn ind_diff(&self) -> usize {
-        match self {
-            Seen::Never => panic!("dont do this pls"),
-            Seen::Once(_) => 0,
-            Seen::Twice(a, b) => b - a
-        }
-    }
-}
-
-fn process(nums: &[usize], lim: usize) -> usize {
-    let mut spoken: Vec<Seen> = vec![Seen::Never; lim];
-    let mut last_spoken = 0;
-
-    for i in 1..=lim {
-        let next = if i <= nums.len() {
-            nums[i - 1]
+    for i in 1u32..=lim {
+        let next = if i <= nums.len() as u32 {
+            nums[(i - 1) as usize]
         } else {
-            spoken[last_spoken].ind_diff()
+            let r = spoken[last_spoken as usize];
+            if r.0 == 0 {
+                0
+            } else {
+                r.1 - r.0
+            }
         };
-        spoken[next].insert(i);
+
+        let r = &mut spoken[next as usize];
+        r.0 = std::mem::replace(&mut r.1, i);
+
         last_spoken = next;
     }
 
-    last_spoken
+    last_spoken as usize
 }
 
-fn part1(nums: &[usize]) -> usize {
+fn part1(nums: &[u32]) -> usize {
     process(nums, 2020)
 }
 
-fn part2(nums: &[usize]) -> usize {
+fn part2(nums: &[u32]) -> usize {
     process(nums, 30_000_000)
 }
 
@@ -72,6 +55,9 @@ mod tests {
 
     #[test]
     fn test_part1_example() {
+        let a = [0, 3, 6];
+        assert_eq!(part1(&a), 436);
+
         let a = [1, 3, 2];
         assert_eq!(part1(&a), 1);
 
