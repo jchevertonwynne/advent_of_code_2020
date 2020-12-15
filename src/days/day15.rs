@@ -1,13 +1,14 @@
-use std::time::{Duration, Instant};
-use fnv::{FnvHashMap, FnvBuildHasher};
+use fnv::{FnvBuildHasher, FnvHashMap};
 use std::collections::HashMap;
+use std::time::{Duration, Instant};
 
 const INPUT: [u32; 6] = [1, 2, 16, 19, 18, 0];
+const SMALL_LIMIT: u32 = 1 << 22;
 
 fn process(nums: &[u32], lim: u32) -> usize {
-    const SMALL_LIMIT: u32 = 1 << 22;
     let mut spoken_small: Vec<(u32, u32)> = vec![(0, 0); SMALL_LIMIT as usize];
-    let mut spoken_large: HashMap<u32, (u32, u32), FnvBuildHasher> = FnvHashMap::with_capacity_and_hasher(1_400_000, FnvBuildHasher::default());
+    let mut spoken_large: HashMap<u32, (u32, u32), FnvBuildHasher> =
+        FnvHashMap::with_capacity_and_hasher(1_400_000, FnvBuildHasher::default());
     let mut last_spoken = 0u32;
 
     for i in 1u32..=lim {
@@ -35,8 +36,6 @@ fn process(nums: &[u32], lim: u32) -> usize {
 
         last_spoken = next;
     }
-
-    // println!("{}", spoken_large.len());
 
     last_spoken as usize
 }

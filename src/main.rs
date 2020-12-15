@@ -38,7 +38,9 @@ fn main() {
     let mut actions = Vec::new();
 
     for arg in args {
-        if arg.contains(':') {
+        if arg == "." {
+            actions.push(Runnable::Range(1, opts.len()))
+        } else if arg.contains(':') {
             let parts = arg.split(':').collect::<Vec<_>>();
             if parts.len() != 2 {
                 println!("too many parts: {}", arg);
