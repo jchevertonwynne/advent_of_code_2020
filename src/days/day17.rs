@@ -1,16 +1,17 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 use std::time::{Duration, Instant};
+use fnv::{FnvHashMap, FnvBuildHasher, FnvHashSet};
 
 const INPUT: &str = include_str!("../../files/17.txt");
 
-fn load_world(input: &str) -> HashSet<(i64, i64, i64)> {
+fn load_world(input: &str) -> HashSet<(i8, i8, i8)> {
     input
         .lines()
         .enumerate()
         .flat_map(|(i, line)| line.chars().enumerate().map(move |(j, c)| (i, j, c)))
         .filter_map(|(i, j, c)| {
             if c == '#' {
-                Some((i as i64, j as i64, 0))
+                Some((i as i8, j as i8, 0))
             } else {
                 None
             }
@@ -18,95 +19,113 @@ fn load_world(input: &str) -> HashSet<(i64, i64, i64)> {
         .collect()
 }
 
-fn part1(mut world: HashSet<(i64, i64, i64)>) -> usize {
-    for _ in 0..6 {
-        let mut next = HashSet::new();
-        for &(i, j, k) in &world {
-            for dx in -1..=1 {
-                for dy in -1..=1 {
-                    for dz in -1..=1 {
-                        let tile = (i + dx, j + dy, k + dz);
-                        let living_neighbours = (-1..=1)
-                            .flat_map(move |di| {
-                                (-1..=1).flat_map(move |dj| (-1..=1).map(move |dk| (di, dj, dk)))
-                            })
-                            .map(move |(di, dj, dk)| (tile.0 + di, tile.1 + dj, tile.2 + dk))
-                            .filter(|t| t != &tile && world.contains(t))
-                            .count();
+fn part1(mut world: HashSet<(i8, i8, i8)>) -> usize {
+    let mut neighbour_count: HashMap<(i8, i8, i8), usize, FnvBuildHasher> = FnvHashMap::with_hasher(FnvBuildHasher::default());
 
-                        match world.contains(&tile) {
-                            true => {
-                                if living_neighbours == 2 || living_neighbours == 3 {
-                                    next.insert(tile);
-                                }
+    for &tile in &world {
+        for dx in -1..=1 {
+            for dy in -1..=1 {
+                for dz in -1..=1 {
+                    if dx == 0 && dy == 0 && dz == 0 {
+                        continue
+                    }
+                    let tile: (i8, i8, i8) = (tile.0 + dx, tile.1 + dy, tile.2 + dz);
+                    *neighbour_count.entry(tile).or_insert(0) += 1;
+                }
+            }
+        }
+    }
+
+    for _ in 0..6 {
+        let mut next_world = HashSet::new();
+        let mut next_neighbour_count: HashMap<(i8, i8, i8), usize, FnvBuildHasher> = FnvHashMap::with_hasher(FnvBuildHasher::default());
+        for (&tile, &neighbours) in &neighbour_count {
+            if neighbours == 3 || (neighbours == 2 && world.contains(&tile)) {
+                next_world.insert(tile);
+                for dx in -1..=1 {
+                    for dy in -1..=1 {
+                        for dz in -1..=1 {
+                            if dx == 0 && dy == 0 && dz == 0 {
+                                continue
                             }
-                            false => {
-                                if living_neighbours == 3 {
-                                    next.insert(tile);
-                                }
-                            }
+                            let neighbour = (tile.0 + dx, tile.1 + dy, tile.2 + dz);
+                            *next_neighbour_count.entry(neighbour).or_insert(0) += 1;
                         }
                     }
                 }
             }
         }
-        world = next;
+        neighbour_count = next_neighbour_count;
+        world = next_world;
     }
+
     world.len()
 }
 
-fn part2(world: HashSet<(i64, i64, i64)>) -> usize {
-    let mut world = world
-        .into_iter()
-        .map(|(i, j, k)| (i, j, k, 0))
-        .collect::<HashSet<(i64, i64, i64, i64)>>();
-    for _ in 0..6 {
-        let mut next = HashSet::new();
-        for &(i, j, k, l) in &world {
-            for dx in -1..=1 {
-                for dy in -1..=1 {
-                    for dz in -1..=1 {
-                        for dw in -1..=1 {
-                            let tile = (i + dx, j + dy, k + dz, l + dw);
-                            let living_neighbours = (-1..=1)
-                                .flat_map(move |di| {
-                                    (-1..=1).flat_map(move |dj| {
-                                        (-1..=1).flat_map(move |dk| {
-                                            (-1..=1).map(move |dl| (di, dj, dk, dl))
-                                        })
-                                    })
-                                })
-                                .map(move |(di, dj, dk, dl)| {
-                                    (tile.0 + di, tile.1 + dj, tile.2 + dk, tile.3 + dl)
-                                })
-                                .filter(|t| t != &tile && world.contains(t))
-                                .count();
+fn part2(world: HashSet<(i8, i8, i8)>) -> usize {
+    let mut world = {
+        let mut w = FnvHashSet::with_capacity_and_hasher(world.len(), FnvBuildHasher::default());
+        for (i, j, k) in world {
+            w.insert((i, j, k, 0));
+        }
+        w
+    };
 
-                            match world.contains(&tile) {
-                                true => {
-                                    if living_neighbours == 2 || living_neighbours == 3 {
-                                        next.insert(tile);
-                                    }
+    // let mut world = world
+    //     .into_iter()
+    //     .map(|(i, j, k)| (i, j, k, 0))
+    //     .collect::<HashSet<(i8, i8, i8, i8)>>();
+
+    let mut neighbour_count: HashMap<(i8, i8, i8, i8), usize, FnvBuildHasher> = FnvHashMap::with_hasher(FnvBuildHasher::default());
+
+    for &tile in &world {
+        for dx in -1..=1 {
+            for dy in -1..=1 {
+                for dz in -1..=1 {
+                    for dw in -1..=1 {
+                        if dx == 0 && dy == 0 && dz == 0 && dw == 0 {
+                            continue
+                        }
+                        let tile: (i8, i8, i8, i8) = (tile.0 + dx, tile.1 + dy, tile.2 + dz, tile.3 + dw);
+                        *neighbour_count.entry(tile).or_insert(0) += 1;
+                    }
+
+                }
+            }
+        }
+    }
+
+    for _ in 0..6 {
+        let mut next_world = FnvHashSet::with_hasher(FnvBuildHasher::default());
+        let mut next_neighbour_count: HashMap<(i8, i8, i8, i8), usize, FnvBuildHasher> = FnvHashMap::with_hasher(FnvBuildHasher::default());
+        for (&tile, &neighbours) in &neighbour_count {
+            if neighbours == 3 || (neighbours == 2 && world.contains(&tile)) {
+                next_world.insert(tile);
+                for dx in -1..=1 {
+                    for dy in -1..=1 {
+                        for dz in -1..=1 {
+                            for dw in -1..=1 {
+                                if dx == 0 && dy == 0 && dz == 0 && dw == 0 {
+                                    continue
                                 }
-                                false => {
-                                    if living_neighbours == 3 {
-                                        next.insert(tile);
-                                    }
-                                }
+                                let neighbour = (tile.0 + dx, tile.1 + dy, tile.2 + dz, tile.3 + dw);
+                                *next_neighbour_count.entry(neighbour).or_insert(0) += 1;
                             }
+
                         }
                     }
                 }
             }
         }
-        world = next;
+        neighbour_count = next_neighbour_count;
+        world = next_world;
     }
+
     world.len()
 }
 
 pub fn run() -> (usize, usize, Duration) {
     let start = Instant::now();
-
     let world = load_world(INPUT);
     let p1 = part1(world.clone());
     let p2 = part2(world.clone());
