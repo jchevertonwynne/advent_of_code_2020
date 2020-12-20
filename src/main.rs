@@ -1,4 +1,3 @@
-// #![feature(hash_drain_filter)]
 #[macro_use]
 extern crate lazy_static;
 
@@ -36,6 +35,7 @@ fn main() {
         || days::day17::run(),
         || days::day18::run(),
         || days::day19::run(),
+        || days::day20::run(),
     ];
 
     let args = std::env::args().skip(1);
