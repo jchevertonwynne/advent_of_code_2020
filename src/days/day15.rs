@@ -58,12 +58,12 @@ pub fn run() -> (usize, usize, Duration) {
 
 #[cfg(test)]
 mod tests {
-    use crate::days::day15::{part1, part2, INPUT};
+    use crate::days::day15::{part1, INPUT};
 
     #[test]
     fn test_actual() {
         assert_eq!(part1(&INPUT), 536);
-        assert_eq!(part2(&INPUT), 24_065_124);
+        // assert_eq!(part2(&INPUT), 24_065_124);
     }
 
     #[test]

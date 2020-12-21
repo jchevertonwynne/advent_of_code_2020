@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::convert::TryInto;
 use std::fmt::{Debug, Formatter};
 use std::time::{Duration, Instant};
 
@@ -9,11 +10,13 @@ struct Tile([[char; 10]; 10]);
 
 impl Debug for Tile {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        for line in &self.0 {
+        for (i, line) in self.0.iter().enumerate() {
             for char in line {
                 write!(f, "{}", char).expect("be ok");
             }
-            writeln!(f).expect("be ok");
+            if i < self.0.len() - 1 {
+                writeln!(f).expect("be ok");
+            }
         }
 
         std::fmt::Result::Ok(())
@@ -22,19 +25,21 @@ impl Debug for Tile {
 
 impl Tile {
     fn left(&self) -> [char; 10] {
-        let mut res = [0 as char; 10];
-        for (i, row) in self.0.iter().enumerate() {
-            res[i] = row[0];
-        }
-        res
+        self.0
+            .iter()
+            .map(|r| r[0])
+            .collect::<Vec<_>>()
+            .try_into()
+            .expect("should be correct length")
     }
 
     fn right(&self) -> [char; 10] {
-        let mut res = [0 as char; 10];
-        for (i, row) in self.0.iter().enumerate() {
-            res[i] = row[9];
-        }
-        res
+        self.0
+            .iter()
+            .map(|r| r[9])
+            .collect::<Vec<_>>()
+            .try_into()
+            .expect("should be correct length")
     }
 
     fn top(&self) -> [char; 10] {
@@ -46,20 +51,16 @@ impl Tile {
     }
 
     fn flip_hori(&self) -> Tile {
-        let mut res = Tile::default();
-        for (i, row) in self.0.iter().enumerate() {
-            for (j, tile) in row.iter().enumerate() {
-                res.0[i][9 - j] = *tile
-            }
+        let mut res = self.clone();
+        for row in res.0.iter_mut() {
+            row.reverse();
         }
         res
     }
 
     fn flip_vert(&self) -> Tile {
-        let mut res = Tile::default();
-        for (i, row) in self.0.iter().enumerate() {
-            res.0[9 - i] = *row;
-        }
+        let mut res = self.clone();
+        res.0.reverse();
         res
     }
 
@@ -192,7 +193,7 @@ fn part2(tiles: &HashMap<usize, Tile>) -> usize {
         *options.entry(id).or_insert(0) += 1;
     }
 
-    let corners = options
+    let corner = options
         .iter()
         .filter(|(_, v)| **v == 4)
         .map(|kv| *kv.0)
@@ -200,9 +201,7 @@ fn part2(tiles: &HashMap<usize, Tile>) -> usize {
         .next()
         .expect("should be a corner unit");
 
-    let mut grid: [[Tile; 12]; 12] = Default::default();
-
-    let mut left_corner = corners.1.clone();
+    let mut left_corner = corner.1.clone();
     while !(tiles_that_have_this_edge
         .get(&left_corner.left())
         .expect("pls")
@@ -216,10 +215,12 @@ fn part2(tiles: &HashMap<usize, Tile>) -> usize {
     {
         left_corner = left_corner.rotate();
     }
+
+    let mut grid: [[Tile; 12]; 12] = Default::default();
     grid[0][0] = left_corner;
 
     let mut placed = HashSet::new();
-    placed.insert(corners.0);
+    placed.insert(corner.0);
 
     for i in 1..12 {
         let above = grid[i - 1][0].bottom();
@@ -233,9 +234,7 @@ fn part2(tiles: &HashMap<usize, Tile>) -> usize {
 
         placed.insert(*connecting_id);
 
-        let connectable = tiles.get(connecting_id).expect("should exist").clone();
-
-        for rotation in connectable.rotations() {
+        for rotation in tiles.get(connecting_id).expect("should exist").rotations() {
             if rotation.top() == above
                 && tiles_that_have_this_edge
                     .get(&rotation.left())
@@ -261,9 +260,7 @@ fn part2(tiles: &HashMap<usize, Tile>) -> usize {
 
         placed.insert(*connecting_id);
 
-        let connectable = tiles.get(connecting_id).expect("should exist").clone();
-
-        for rotation in connectable.rotations() {
+        for rotation in tiles.get(connecting_id).expect("should exist").rotations() {
             if rotation.left() == to_left
                 && tiles_that_have_this_edge
                     .get(&rotation.top())
@@ -292,11 +289,7 @@ fn part2(tiles: &HashMap<usize, Tile>) -> usize {
                 .next()
                 .expect("is one option");
 
-            placed.insert(*connecting_id);
-
-            let connectable = tiles.get(connecting_id).expect("should exist").clone();
-
-            for rotation in connectable.rotations() {
+            for rotation in tiles.get(connecting_id).expect("should exist").rotations() {
                 if rotation.top() == top_edge && rotation.left() == left_edge {
                     grid[i][j] = rotation;
                     break;
@@ -306,7 +299,6 @@ fn part2(tiles: &HashMap<usize, Tile>) -> usize {
     }
 
     let mut fixed_grid = [[0 as char; 96]; 96];
-
     for (x, row) in grid.iter().enumerate() {
         for (y, tile) in row.iter().enumerate() {
             for (w, tr) in tile.0[1..9].iter().enumerate() {
@@ -391,7 +383,7 @@ pub fn run() -> (usize, usize, Duration) {
 
 #[cfg(test)]
 mod tests {
-    use crate::days::day20::{load_tiles, Tile, rotate, mirror_flip};
+    use crate::days::day20::{load_tiles, mirror_flip, rotate, Tile};
     use std::convert::TryInto;
 
     #[test]
