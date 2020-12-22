@@ -9,13 +9,6 @@ struct Food<'a> {
     allergens: HashSet<&'a str>,
 }
 
-impl Food<'_> {
-    fn remove(&mut self, allergen: &str, ingredient: &str) {
-        self.ingredients.remove(ingredient);
-        self.allergens.remove(allergen);
-    }
-}
-
 fn load_foods(input: &str) -> Vec<Food> {
     let mut res = Vec::new();
     for line in input.lines() {
@@ -58,7 +51,7 @@ fn solve(foods: Vec<Food>) -> (usize, String) {
                     .fold(containing[0].ingredients.clone(), |acc, food| {
                         HashSet::intersection(&acc, &food.ingredients)
                             .copied()
-                            .collect::<HashSet<_>>()
+                            .collect()
                     });
             if possible_ingredients.len() != 1 {
                 continue;
@@ -70,7 +63,8 @@ fn solve(foods: Vec<Food>) -> (usize, String) {
         for (allergen, ingredient) in solved {
             known_allergen.insert(ingredient, allergen);
             for food in working_foods.iter_mut() {
-                food.remove(allergen, ingredient);
+                food.ingredients.remove(ingredient);
+                food.allergens.remove(allergen);
             }
         }
     }
@@ -120,6 +114,6 @@ trh fvjkl sbzzf mxmxvkd (contains dairy)
 sqjhc fvjkl (contains soy)
 sqjhc mxmxvkd sbzzf (contains fish)";
         let foods = load_foods(s);
-        assert_eq!(solve(foods), 5);
+        assert_eq!(solve(foods), (5, "mxmxvkd,sqjhc,fvjkl".to_string()));
     }
 }
