@@ -76,13 +76,13 @@ fn part2(lines: &[&str]) -> usize {
         .sum()
 }
 
-pub fn run() -> (usize, usize, Duration) {
+pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
     let lines = INPUT.lines().collect::<Vec<_>>();
     let p1 = part1(&lines);
     let p2 = part2(&lines);
 
-    (p1, p2, start.elapsed())
+    (p1.to_string(), p2.to_string(), start.elapsed())
 }
 
 #[cfg(test)]

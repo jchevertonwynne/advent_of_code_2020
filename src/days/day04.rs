@@ -145,11 +145,11 @@ fn solve(input: &str) -> (usize, usize) {
         .fold((0, 0), |(a, b), (c, d)| (a + c, b + d))
 }
 
-pub fn run() -> (usize, usize, Duration) {
+pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
     let (p1, p2) = solve(INPUT);
 
-    (p1, p2, start.elapsed())
+    (p1.to_string(), p2.to_string(), start.elapsed())
 }
 
 #[cfg(test)]

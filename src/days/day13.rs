@@ -48,13 +48,13 @@ fn part2(busses: &[Option<usize>]) -> usize {
     (product - res) as usize
 }
 
-pub fn run() -> (usize, usize, Duration) {
+pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
     let (timestamp, busses) = load_busses(INPUT);
     let p1 = part1(timestamp, &busses);
     let p2 = part2(&busses);
 
-    (p1, p2, start.elapsed())
+    (p1.to_string(), p2.to_string(), start.elapsed())
 }
 
 #[cfg(test)]

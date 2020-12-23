@@ -3,7 +3,7 @@ use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/22.txt");
 
-fn load_players(input: &str) -> (VecDeque<usize>, VecDeque<usize>) {
+fn load_players(input: &str) -> (VecDeque<i8>, VecDeque<i8>) {
     let mut players = input.split("\n\n");
     let p1 = players.next().expect("should have a player");
     let p2 = players.next().expect("should have a player");
@@ -22,7 +22,7 @@ fn load_players(input: &str) -> (VecDeque<usize>, VecDeque<usize>) {
     (p1, p2)
 }
 
-fn part1(mut player_1: VecDeque<usize>, mut player_2: VecDeque<usize>) -> usize {
+fn part1(mut player_1: VecDeque<i8>, mut player_2: VecDeque<i8>) -> usize {
     while !player_1.is_empty() && !player_2.is_empty() {
         let a = player_1.pop_front().unwrap();
         let b = player_2.pop_front().unwrap();
@@ -41,20 +41,23 @@ fn part1(mut player_1: VecDeque<usize>, mut player_2: VecDeque<usize>) -> usize 
     } else {
         player_1
     };
-    (1..).zip(winner.iter().rev()).map(|(i, v)| i * v).sum()
+    (1usize..)
+        .zip(winner.iter().rev())
+        .map(|(i, v)| (i * *v as usize))
+        .sum()
 }
 
 enum Player {
-    P1,
-    P2,
+    Player1,
+    Player2,
 }
 
-fn recursive_combat_loop(player_1: &mut VecDeque<usize>, player_2: &mut VecDeque<usize>) -> Player {
-    let mut seen_stacks: HashSet<(VecDeque<usize>, VecDeque<usize>)> = HashSet::new();
+fn recursive_combat_loop(player_1: &mut VecDeque<i8>, player_2: &mut VecDeque<i8>) -> Player {
+    let mut seen_stacks: HashSet<(VecDeque<i8>, VecDeque<i8>)> = HashSet::new();
 
     while !player_1.is_empty() && !player_2.is_empty() {
         if seen_stacks.contains(&(player_1.clone(), player_2.clone())) {
-            return Player::P1;
+            return Player::Player1;
         }
 
         seen_stacks.insert((player_1.clone(), player_2.clone()));
@@ -62,7 +65,7 @@ fn recursive_combat_loop(player_1: &mut VecDeque<usize>, player_2: &mut VecDeque
         let a = player_1.pop_front().unwrap();
         let b = player_2.pop_front().unwrap();
 
-        if a > player_1.len() || b > player_2.len() {
+        if a > player_1.len() as i8 || b > player_2.len() as i8 {
             if a > b {
                 player_1.push_back(a);
                 player_1.push_back(b);
@@ -75,21 +78,21 @@ fn recursive_combat_loop(player_1: &mut VecDeque<usize>, player_2: &mut VecDeque
 
         let mut sub_p1 = player_1
             .iter()
-            .take(a)
+            .take(a as usize)
             .copied()
-            .collect::<VecDeque<usize>>();
+            .collect::<VecDeque<i8>>();
         let mut sub_p2 = player_2
             .iter()
-            .take(b)
+            .take(b as usize)
             .copied()
-            .collect::<VecDeque<usize>>();
+            .collect::<VecDeque<i8>>();
 
         match recursive_combat_loop(&mut sub_p1, &mut sub_p2) {
-            Player::P1 => {
+            Player::Player1 => {
                 player_1.push_back(a);
                 player_1.push_back(b);
             }
-            Player::P2 => {
+            Player::Player2 => {
                 player_2.push_back(b);
                 player_2.push_back(a);
             }
@@ -97,36 +100,39 @@ fn recursive_combat_loop(player_1: &mut VecDeque<usize>, player_2: &mut VecDeque
     }
 
     if player_1.is_empty() {
-        Player::P2
+        Player::Player2
     } else {
-        Player::P1
+        Player::Player1
     }
 }
 
-fn part2(mut player_1: VecDeque<usize>, mut player_2: VecDeque<usize>) -> usize {
+fn part2(mut player_1: VecDeque<i8>, mut player_2: VecDeque<i8>) -> usize {
     let winner = match recursive_combat_loop(&mut player_1, &mut player_2) {
-        Player::P1 => player_1,
-        Player::P2 => player_2,
+        Player::Player1 => player_1,
+        Player::Player2 => player_2,
     };
 
-    (1..).zip(winner.iter().rev()).map(|(i, v)| i * v).sum()
+    (1usize..)
+        .zip(winner.iter().rev())
+        .map(|(i, v)| (i * *v as usize))
+        .sum()
 }
 
-pub fn run() -> (usize, usize, Duration) {
+pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
     let (a, b) = load_players(INPUT);
     let p1 = part1(a.clone(), b.clone());
     let p2 = part2(a, b);
 
-    (p1, p2, start.elapsed())
+    (p1.to_string(), p2.to_string(), start.elapsed())
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::days::day22::{load_players, part2};
+    use crate::days::day22::{load_players, part1, part2};
 
     #[test]
-    fn load_data() {
+    fn play_games() {
         let s = "Player 1:
 9
 2
@@ -141,26 +147,7 @@ Player 2:
 7
 10";
         let (p1, p2) = load_players(s);
-        println!("{:?}", p1);
-        println!("{:?}", p2);
-    }
-
-    #[test]
-    fn recursive_game() {
-        let s = "Player 1:
-9
-2
-6
-3
-1
-
-Player 2:
-5
-8
-4
-7
-10";
-        let (p1, p2) = load_players(s);
+        assert_eq!(part1(p1.clone(), p2.clone()), 306);
         assert_eq!(part2(p1, p2), 291);
     }
 }

@@ -14,8 +14,8 @@ fn load_trees(input: &str) -> Trees {
         .map(|line| {
             width = line.len();
             line.chars()
-                .zip(0..)
-                .filter_map(|(c, i)| if c == '#' { Some(i) } else { None })
+                .enumerate()
+                .filter_map(|(i, c)| if c == '#' { Some(i) } else { None })
                 .fold(0, |acc, v| acc | (1 << v))
         })
         .collect();
@@ -37,13 +37,13 @@ fn part2(trees: &Trees) -> usize {
         .product()
 }
 
-pub fn run() -> (usize, usize, Duration) {
+pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
     let trees = load_trees(INPUT);
     let p1 = part1(&trees, 3, 1);
     let p2 = part2(&trees);
 
-    (p1, p2, start.elapsed())
+    (p1.to_string(), p2.to_string(), start.elapsed())
 }
 
 #[cfg(test)]

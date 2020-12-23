@@ -60,11 +60,11 @@ fn solve(nums: &[usize]) -> (usize, usize) {
     (ones * threes, p2)
 }
 
-pub fn run() -> (usize, usize, Duration) {
+pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
     let (p1, p2) = solve(&PRECOMPUTED_INPUT);
 
-    (p1, p2, start.elapsed())
+    (p1.to_string(), p2.to_string(), start.elapsed())
 }
 
 #[cfg(test)]

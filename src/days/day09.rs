@@ -56,12 +56,12 @@ fn part2(nums: &[usize], goal: usize) -> usize {
     panic!("lol")
 }
 
-pub fn run() -> (usize, usize, Duration) {
+pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
     let p1 = part1(&STATIC_INPUT, 26);
     let p2 = part2(&STATIC_INPUT, p1);
 
-    (p1, p2, start.elapsed())
+    (p1.to_string(), p2.to_string(), start.elapsed())
 }
 
 #[cfg(test)]

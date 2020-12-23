@@ -175,14 +175,14 @@ fn part2(rows: &[Row], valid: &[&Ticket], ticket: Ticket) -> usize {
         .product()
 }
 
-pub fn run() -> (usize, usize, Duration) {
+pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
 
     let (rows, ticket, tickets) = load_tickets(INPUT);
     let (p1, valid) = part1(&rows, &tickets);
     let p2 = part2(&rows, &valid, ticket);
 
-    (p1, p2, start.elapsed())
+    (p1.to_string(), p2.to_string(), start.elapsed())
 }
 
 #[cfg(test)]

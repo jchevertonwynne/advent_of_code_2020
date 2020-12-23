@@ -125,12 +125,12 @@ fn part2(instructions: &[Instruction]) -> usize {
     (x.abs() + y.abs()) as usize
 }
 
-pub fn run() -> (usize, usize, Duration) {
+pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
     let instructions = load_instructions(INPUT);
     let p1 = part1(&instructions);
     let p2 = part2(&instructions);
-    (p1, p2, start.elapsed())
+    (p1.to_string(), p2.to_string(), start.elapsed())
 }
 
 #[cfg(test)]

@@ -372,13 +372,13 @@ fn part2(tiles: &HashMap<usize, Tile>) -> usize {
         - (monster_coords.len() * monster_count)
 }
 
-pub fn run() -> (usize, usize, Duration) {
+pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
     let tiles = load_tiles(INPUT);
     let p1 = part1(&tiles);
     let p2 = part2(&tiles);
 
-    (p1, p2, start.elapsed())
+    (p1.to_string(), p2.to_string(), start.elapsed())
 }
 
 #[cfg(test)]

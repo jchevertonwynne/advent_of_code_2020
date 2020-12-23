@@ -165,14 +165,14 @@ fn solver(grammar: &Grammar, to_check: &[&str]) -> usize {
     to_check.iter().filter(|t| matcher.is_match(t)).count()
 }
 
-pub fn run() -> (usize, usize, Duration) {
+pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
     let (rules, to_check) = load_input(INPUT);
     let p1 = solver(&*rules, &to_check);
     let (rules, to_check) = load_input(INPUT2);
     let p2 = solver(&*rules, &to_check);
 
-    (p1, p2, start.elapsed())
+    (p1.to_string(), p2.to_string(), start.elapsed())
 }
 
 #[cfg(test)]

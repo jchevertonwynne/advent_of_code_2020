@@ -84,23 +84,17 @@ fn solve(foods: Vec<Food>) -> (usize, String) {
         .map(|(k, v)| (v, k))
         .collect::<Vec<_>>();
     reversed.sort_by(|(aa, _), (ba, _)| aa.cmp(ba));
-    let mut ans = String::new();
-    for (_, ingredient) in reversed {
-        ans.push_str(ingredient);
-        ans.push(',');
-    }
-    ans.pop();
+    let p2 = reversed.iter().map(|r| *r.1).collect::<Vec<_>>().join(",");
 
-    (p1, ans)
+    (p1, p2)
 }
 
-pub fn run() -> (usize, usize, Duration) {
+pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
     let foods = load_foods(INPUT);
     let (p1, p2) = solve(foods);
-    println!("{}", p2);
 
-    (p1, 0, start.elapsed())
+    (p1.to_string(), p2, start.elapsed())
 }
 
 #[cfg(test)]

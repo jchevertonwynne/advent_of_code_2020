@@ -142,13 +142,13 @@ fn part2(tree: &BagTree) -> usize {
         .children()
 }
 
-pub fn run() -> (usize, usize, Duration) {
+pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
     let tree = BagTree::new(INPUT);
     let p1 = part1(&tree);
     let p2 = part2(&tree);
 
-    (p1, p2, start.elapsed())
+    (p1.to_string(), p2.to_string(), start.elapsed())
 }
 
 #[cfg(test)]

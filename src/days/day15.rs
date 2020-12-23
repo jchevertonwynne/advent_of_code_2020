@@ -48,12 +48,12 @@ fn part2(nums: &[u32]) -> usize {
     process(nums, 30_000_000)
 }
 
-pub fn run() -> (usize, usize, Duration) {
+pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
     let p1 = part1(&INPUT);
     let p2 = part2(&INPUT);
 
-    (p1, p2, start.elapsed())
+    (p1.to_string(), p2.to_string(), start.elapsed())
 }
 
 #[cfg(test)]

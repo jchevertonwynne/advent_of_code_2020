@@ -20,13 +20,13 @@ fn part2(machine: &mut Machine) -> usize {
         .expect("one solution") as usize
 }
 
-pub fn run() -> (usize, usize, Duration) {
+pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
     let mut machine = INPUT.parse::<Machine>().expect("please be a machine");
     let p1 = part1(&mut machine);
     let p2 = part2(&mut machine);
 
-    (p1, p2, start.elapsed())
+    (p1.to_string(), p2.to_string(), start.elapsed())
 }
 
 #[cfg(test)]

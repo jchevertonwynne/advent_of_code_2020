@@ -113,13 +113,13 @@ fn part2(world: HashSet<(i8, i8, i8)>) -> usize {
     world.len()
 }
 
-pub fn run() -> (usize, usize, Duration) {
+pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
     let world = load_world(INPUT);
     let p1 = part1(world.clone());
     let p2 = part2(world);
 
-    (p1, p2, start.elapsed())
+    (p1.to_string(), p2.to_string(), start.elapsed())
 }
 
 #[cfg(test)]

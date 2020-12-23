@@ -121,12 +121,12 @@ fn part2(instructions: &[InputLine]) -> usize {
     mem.values().sum()
 }
 
-pub fn run() -> (usize, usize, Duration) {
+pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
     let p1 = part1(&STATIC_INPUT);
     let p2 = part2(&STATIC_INPUT);
 
-    (p1, p2, start.elapsed())
+    (p1.to_string(), p2.to_string(), start.elapsed())
 }
 
 #[cfg(test)]

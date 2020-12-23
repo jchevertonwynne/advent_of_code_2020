@@ -12,7 +12,7 @@ enum Runnable {
     Repeat(usize, usize),
 }
 
-type RunFunc = fn() -> (usize, usize, Duration);
+type RunFunc = fn() -> (String, String, Duration);
 
 fn main() {
     let opts: Vec<RunFunc> = vec![
@@ -38,6 +38,7 @@ fn main() {
         || days::day20::run(),
         || days::day21::run(),
         || days::day22::run(),
+        || days::day23::run(),
     ];
 
     let args = std::env::args().skip(1);
@@ -45,7 +46,9 @@ fn main() {
     let mut actions = Vec::new();
 
     for arg in args {
-        if arg == "." {
+        if arg == "!" {
+            actions.push(Runnable::Single(opts.len()))
+        } else if arg == "." {
             actions.push(Runnable::Range(1, opts.len()))
         } else if arg.contains(':') {
             let parts = arg.split(':').collect::<Vec<_>>();

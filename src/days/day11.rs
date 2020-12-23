@@ -217,12 +217,12 @@ fn part2(mut world: World) -> usize {
     world.occupied()
 }
 
-pub fn run() -> (usize, usize, Duration) {
+pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
     let p1 = part1(STATIC_WORLD.clone());
     let p2 = part2(STATIC_WORLD.clone());
 
-    (p1, p2, start.elapsed())
+    (p1.to_string(), p2.to_string(), start.elapsed())
 }
 
 #[cfg(test)]
