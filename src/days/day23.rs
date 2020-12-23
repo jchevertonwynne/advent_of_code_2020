@@ -12,102 +12,94 @@ fn load_cups(mut input: usize) -> [u8; 9] {
         res[ind] = i as u8;
     }
 
-    res.try_into().unwrap()
+    res
 }
 
 fn part1(cups: &[u8], turns: usize) -> usize {
-    let mut tiles = vec![0; 10];
+    let mut tiles = vec![0u8; 10];
     for (p, n) in cups.iter().skip(1).zip(cups.iter()) {
-        tiles[*n as usize] = *p as usize;
+        tiles[*n as usize] = *p;
     }
 
-    let first = *cups.first().unwrap() as usize;
+    let first = *cups.first().unwrap();
     let last = *cups.last().unwrap() as usize;
 
     tiles[last] = first;
 
-    let mut curr = *cups.first().unwrap() as usize;
+    let mut curr = *cups.first().unwrap();
     for _ in 0..turns {
-        let a = tiles[curr];
-        let b = tiles[a];
-        let c = tiles[b];
+        let a = tiles[curr as usize];
+        let b = tiles[a as usize];
+        let c = tiles[b as usize];
 
-        let mut destination = curr - 1;
-        if destination == 0 {
-            destination = 9;
-        }
-        while destination == a || destination == b || destination == c {
+        let mut destination = curr;
+        while destination == a || destination == b || destination == c || destination == curr {
             destination -= 1;
             if destination == 0 {
                 destination = 9;
             }
         }
 
-        let now_after_curr = tiles[c];
-        tiles[curr] = now_after_curr;
+        let c = c as usize;
+        let destination = destination as usize;
 
+        let now_after_curr = tiles[c];
+        tiles[curr as usize] = now_after_curr;
         tiles[c] = tiles[destination];
         tiles[destination] = a;
-        curr = tiles[curr];
+
+        curr = tiles[curr as usize];
     }
 
-    let mut res = 0;
+    let mut res = 0usize;
     let mut c = 1;
     for _ in 0..8 {
-        c = tiles[c];
+        c = tiles[c as usize];
         res *= 10;
-        res += c;
+        res += c as usize;
     }
     res
 }
 
 fn part2(cups: &[u8]) -> usize {
-    let mut tiles = vec![0; 1_000_001];
+    let mut tiles: [u32; 1_000_001] = (1..=1_000_001).collect::<Vec<_>>().try_into().unwrap();
     for (p, n) in cups.iter().skip(1).zip(cups.iter()) {
-        tiles[*n as usize] = *p as usize;
+        tiles[*n as usize] = *p as u32;
     }
 
-    let first = *cups.first().unwrap() as usize;
+    let first = *cups.first().unwrap() as u32;
     let last = *cups.last().unwrap() as usize;
 
-    for i in 10..=1_000_000 {
-        if i == 10 {
-            tiles[last] = 10;
-        }
-        if i == 1_000_000 {
-            tiles[i] = first;
-        } else {
-            tiles[i] = i + 1;
-        }
-    }
+    tiles[1_000_000] = first;
+    tiles[last] = 10;
 
-    let mut curr = *cups.first().unwrap() as usize;
+    let mut curr = cups[0] as u32;
     for _ in 0..10_000_000 {
-        let a = tiles[curr];
-        let b = tiles[a];
-        let c = tiles[b];
+        let a = tiles[curr as usize];
+        let b = tiles[a as usize];
+        let c = tiles[b as usize];
 
-        let mut destination = curr - 1;
-        if destination == 0 {
-            destination = 1_000_000;
-        }
-        while destination == a || destination == b || destination == c {
+        let mut destination = curr;
+        while destination == a || destination == b || destination == c || destination == curr {
             destination -= 1;
             if destination == 0 {
                 destination = 1_000_000;
             }
         }
 
+        let c = c as usize;
+        let destination = destination as usize;
+
         let now_after_curr = tiles[c];
-        tiles[curr] = now_after_curr;
+        tiles[curr as usize] = now_after_curr;
         tiles[c] = tiles[destination];
         tiles[destination] = a;
 
-        curr = tiles[curr];
+        curr = tiles[curr as usize];
     }
 
-    let a = tiles[1];
-    let b = tiles[a];
+    let a = tiles[1] as usize;
+    let b = tiles[a as usize] as usize;
 
     a * b
 }

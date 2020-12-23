@@ -2,6 +2,7 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::time::{Duration, Instant};
+use std::fmt::Debug;
 
 const INPUT: &str = include_str!("../../files/19.txt");
 const INPUT2: &str = include_str!("../../files/19_2.txt");
@@ -25,7 +26,6 @@ struct Grammar {
 
 trait BuildOptions {
     fn regex(&self, anchor: bool, limit: usize) -> String;
-    fn valid(&self, s: &str) -> bool;
 }
 
 impl BuildOptions for Grammar {
@@ -81,10 +81,6 @@ impl BuildOptions for Grammar {
         }
 
         res
-    }
-
-    fn valid(&self, _: &str) -> bool {
-        unimplemented!()
     }
 }
 
