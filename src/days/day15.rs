@@ -11,11 +11,7 @@ fn process(nums: &[u32], lim: u32) -> usize {
     let mut last_spoken = *nums.last().unwrap();
     for i in (nums.len() + 1) as u32..=lim {
         let next = spoken[last_spoken as usize];
-        let result = if next == 0 {
-            0
-        } else {
-            (i - 1) - next
-        };
+        let result = if next == 0 { 0 } else { (i - 1) - next };
 
         spoken[last_spoken as usize] = i - 1;
         last_spoken = result;

@@ -39,6 +39,7 @@ fn main() {
         || days::day21::run(),
         || days::day22::run(),
         || days::day23::run(),
+        || days::day24::run(),
     ];
 
     let args = std::env::args().skip(1);

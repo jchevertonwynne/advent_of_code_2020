@@ -1,5 +1,5 @@
-use std::time::{Duration, Instant};
 use std::convert::TryInto;
+use std::time::{Duration, Instant};
 
 fn load_cups(mut input: usize) -> [u8; 9] {
     let mut res = [0; 9];

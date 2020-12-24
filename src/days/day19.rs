@@ -1,8 +1,8 @@
 use regex::Regex;
 use std::collections::HashMap;
+use std::fmt::Debug;
 use std::rc::Rc;
 use std::time::{Duration, Instant};
-use std::fmt::Debug;
 
 const INPUT: &str = include_str!("../../files/19.txt");
 const INPUT2: &str = include_str!("../../files/19_2.txt");
