@@ -4,10 +4,6 @@ use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/14.txt");
 
-lazy_static! {
-    static ref STATIC_INPUT: Vec<InputLine> = load_program(INPUT);
-}
-
 #[derive(Debug, Copy, Clone)]
 enum Mask {
     Unset,
@@ -123,8 +119,9 @@ fn part2(instructions: &[InputLine]) -> usize {
 
 pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
-    let p1 = part1(&STATIC_INPUT);
-    let p2 = part2(&STATIC_INPUT);
+    let instructions = load_program(INPUT);
+    let p1 = part1(&instructions);
+    let p2 = part2(&instructions);
 
     (p1.to_string(), p2.to_string(), start.elapsed())
 }

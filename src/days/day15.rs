@@ -1,3 +1,5 @@
+use fnv::{FnvBuildHasher, FnvHashMap};
+use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 const INPUT: [u32; 6] = [1, 2, 16, 19, 18, 0];
@@ -10,8 +12,10 @@ fn process(nums: &[u32], lim: u32) -> usize {
     }
     let mut last_spoken = *nums.last().unwrap();
     for i in (nums.len() + 1) as u32..=lim {
-        let next = spoken[last_spoken as usize];
-        let result = if next == 0 { 0 } else { (i - 1) - next };
+        let mut result = spoken[last_spoken as usize];
+        if result != 0 {
+            result = (i - 1) - result;
+        }
 
         spoken[last_spoken as usize] = i - 1;
         last_spoken = result;
@@ -24,8 +28,52 @@ fn part1(nums: &[u32]) -> usize {
     process(nums, 2020)
 }
 
+// fn part2(nums: &[u32]) -> usize {
+//     let mut spoken_small = vec![0u32; 30_000_001];
+//     for (i, next) in (1..).zip(nums) {
+//         spoken_small[*next as usize] = i;
+//     }
+//
+//     let mut last_spoken = *nums.last().unwrap();
+//     for i in (nums.len()) as u32..30_000_000 {
+//         let mut result = spoken_small[last_spoken as usize];
+//         if result != 0 {
+//             result = i - result;
+//         }
+//
+//         spoken_small[last_spoken as usize] = i;
+//         last_spoken = result;
+//     }
+//
+//     last_spoken as usize
+// }
+
 fn part2(nums: &[u32]) -> usize {
-    process(nums, 30_000_000)
+    const LIM: u32 = 1 << 22;
+    let mut spoken_small = vec![0u32; LIM as usize];
+    let mut spoken_large: HashMap<u32, u32, FnvBuildHasher> =
+        FnvHashMap::with_capacity_and_hasher(1_400_000, FnvBuildHasher::default());
+    for (i, next) in (1..).zip(nums) {
+        spoken_small[*next as usize] = i;
+    }
+
+    let mut last_spoken = *nums.last().unwrap();
+    for i in (nums.len()) as u32..30_000_000 {
+        let d = if last_spoken < LIM {
+            spoken_small.get_mut(last_spoken as usize).unwrap()
+        } else {
+            spoken_large.entry(last_spoken).or_insert(0)
+        };
+        let mut result = *d;
+        if result != 0 {
+            result = i - result;
+        }
+
+        *d = i;
+        last_spoken = result;
+    }
+
+    last_spoken as usize
 }
 
 pub fn run() -> (String, String, Duration) {
@@ -38,12 +86,12 @@ pub fn run() -> (String, String, Duration) {
 
 #[cfg(test)]
 mod tests {
-    use crate::days::day15::{part1, INPUT};
+    use crate::days::day15::{part1, part2, INPUT};
 
     #[test]
     fn test_actual() {
         assert_eq!(part1(&INPUT), 536);
-        // assert_eq!(part2(&INPUT), 24_065_124);
+        assert_eq!(part2(&INPUT), 24_065_124);
     }
 
     #[test]

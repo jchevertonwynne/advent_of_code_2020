@@ -2,10 +2,6 @@ use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/10.txt");
 
-lazy_static! {
-    static ref PRECOMPUTED_INPUT: Vec<usize> = load_input(INPUT);
-}
-
 fn load_input(input: &str) -> Vec<usize> {
     let mut res = input
         .lines()
@@ -62,7 +58,8 @@ fn solve(nums: &[usize]) -> (usize, usize) {
 
 pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
-    let (p1, p2) = solve(&PRECOMPUTED_INPUT);
+    let nums = load_input(INPUT);
+    let (p1, p2) = solve(&nums);
 
     (p1.to_string(), p2.to_string(), start.elapsed())
 }

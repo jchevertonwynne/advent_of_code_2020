@@ -87,13 +87,10 @@ fn part2(cups: &[u8]) -> usize {
             }
         }
 
-        let c = c as usize;
-        let destination = destination as usize;
-
-        let now_after_curr = tiles[c];
+        let now_after_curr = tiles[c as usize];
         tiles[curr as usize] = now_after_curr;
-        tiles[c] = tiles[destination];
-        tiles[destination] = a;
+        tiles[c as usize] = tiles[destination as usize];
+        tiles[destination as usize] = a;
 
         curr = tiles[curr as usize];
     }

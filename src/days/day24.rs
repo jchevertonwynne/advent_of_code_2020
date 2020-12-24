@@ -104,9 +104,9 @@ fn part1(paths: &[Path]) -> (usize, HashMap<(i16, i16), Tile>) {
 
 fn part2(seen: HashMap<(i16, i16), Tile>) -> usize {
     let mut black_coords = seen
-        .iter()
-        .filter(|(_, colour)| **colour == Tile::Black)
-        .map(|kv| *kv.0)
+        .into_iter()
+        .filter(|(_, colour)| *colour == Tile::Black)
+        .map(|kv| kv.0)
         .collect::<HashSet<_>>();
 
     let mut neighbours = HashMap::new();

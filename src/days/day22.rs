@@ -56,11 +56,14 @@ fn recursive_combat_loop(player_1: &mut VecDeque<i8>, player_2: &mut VecDeque<i8
     let mut seen_stacks: HashSet<(VecDeque<i8>, VecDeque<i8>)> = HashSet::new();
 
     while !player_1.is_empty() && !player_2.is_empty() {
-        if seen_stacks.contains(&(player_1.clone(), player_2.clone())) {
+        let player1_deck = player_1.clone();
+        let player2_deck = player_2.clone();
+        let decks = (player1_deck, player2_deck);
+        if seen_stacks.contains(&decks) {
             return Player::Player1;
         }
 
-        seen_stacks.insert((player_1.clone(), player_2.clone()));
+        seen_stacks.insert(decks);
 
         let a = player_1.pop_front().unwrap();
         let b = player_2.pop_front().unwrap();

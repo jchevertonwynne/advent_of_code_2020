@@ -1,12 +1,7 @@
 use std::time::{Duration, Instant};
 
-const GOAL: usize = 2_020;
-
-lazy_static! {
-    static ref STATIC_NUMBERS: Vec<usize> = load_numbers(INPUT);
-}
-
 const INPUT: &str = include_str!("../../files/01.txt");
+const GOAL: usize = 2_020;
 
 fn load_numbers(input: &str) -> Vec<usize> {
     input
@@ -49,8 +44,9 @@ fn part2(nums: &[usize]) -> usize {
 
 pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
-    let p1 = part1(&STATIC_NUMBERS);
-    let p2 = part2(&STATIC_NUMBERS);
+    let numbers = load_numbers(INPUT);
+    let p1 = part1(&numbers);
+    let p2 = part2(&numbers);
 
     (p1.to_string(), p2.to_string(), start.elapsed())
 }

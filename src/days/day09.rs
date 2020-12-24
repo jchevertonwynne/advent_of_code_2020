@@ -2,10 +2,6 @@ use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/09.txt");
 
-lazy_static! {
-    static ref STATIC_INPUT: Vec<usize> = load_numbers(INPUT);
-}
-
 fn load_numbers(input: &str) -> Vec<usize> {
     input
         .lines()
@@ -58,8 +54,9 @@ fn part2(nums: &[usize], goal: usize) -> usize {
 
 pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
-    let p1 = part1(&STATIC_INPUT, 26);
-    let p2 = part2(&STATIC_INPUT, p1);
+    let numbers = load_numbers(INPUT);
+    let p1 = part1(&numbers, 26);
+    let p2 = part2(&numbers, p1);
 
     (p1.to_string(), p2.to_string(), start.elapsed())
 }

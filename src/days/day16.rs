@@ -118,15 +118,7 @@ fn reduce_to_unique<'a>(rows: &'a [Row], tickets: &'_ [&Ticket]) -> Vec<&'a str>
             .or_insert_with(HashSet::new);
 
         for i in 0..tickets[0].len() {
-            let valid = tickets.iter().all(|t| row.valid(t[i]));
-            // let mut valid = true;
-            // for ticket in tickets {
-            //     if !row.valid(ticket[i]) {
-            //         valid = false;
-            //         break;
-            //     }
-            // }
-            if valid {
+            if tickets.iter().all(|t| row.valid(t[i])) {
                 entry.insert(i);
             }
         }
