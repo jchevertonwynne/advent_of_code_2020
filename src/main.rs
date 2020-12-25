@@ -1,6 +1,5 @@
 use std::time::Duration;
 
-mod common;
 mod days;
 
 enum Runnable {
@@ -37,6 +36,7 @@ fn main() {
         || days::day22::run(),
         || days::day23::run(),
         || days::day24::run(),
+        || days::day25::run(),
     ];
 
     let args = std::env::args().skip(1);

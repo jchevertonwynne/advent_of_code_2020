@@ -1,3 +1,4 @@
+use fnv::FnvBuildHasher;
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::time::{Duration, Instant};
@@ -53,7 +54,7 @@ fn load_program(input: &str) -> Vec<InputLine> {
 
 fn part1(instructions: &[InputLine]) -> usize {
     let mut mask = [Mask::Unset; 36];
-    let mut mem = HashMap::new();
+    let mut mem = HashMap::with_hasher(FnvBuildHasher::default());
     for instruction in instructions {
         match *instruction {
             InputLine::Mask(m) => mask = m,
@@ -75,7 +76,7 @@ fn part1(instructions: &[InputLine]) -> usize {
 }
 
 fn applier(
-    mem: &mut HashMap<usize, usize>,
+    mem: &mut HashMap<usize, usize, FnvBuildHasher>,
     orig_addr: usize,
     addr: usize,
     ind: usize,
@@ -106,7 +107,8 @@ fn applier(
 
 fn part2(instructions: &[InputLine]) -> usize {
     let mut mask = [Mask::Unset; 36];
-    let mut mem: HashMap<usize, usize> = HashMap::new();
+    let mut mem: HashMap<usize, usize, FnvBuildHasher> =
+        HashMap::with_hasher(FnvBuildHasher::default());
     for instruction in instructions {
         match *instruction {
             InputLine::Mask(m) => mask = m,
@@ -129,6 +131,7 @@ pub fn run() -> (String, String, Duration) {
 #[cfg(test)]
 mod tests {
     use crate::days::day14::{applier, load_program, part1, part2, InputLine, INPUT};
+    use fnv::FnvBuildHasher;
     use std::collections::HashMap;
 
     #[test]
@@ -165,7 +168,8 @@ mem[26] = 1";
             InputLine::Setting(addr, val) => (addr, val),
         };
 
-        let mut mem: HashMap<usize, usize> = HashMap::new();
+        let mut mem: HashMap<usize, usize, FnvBuildHasher> =
+            HashMap::with_hasher(FnvBuildHasher::default());
         applier(&mut mem, addr, 0, 0, &mask, val);
 
         println!("{:?}", mem);

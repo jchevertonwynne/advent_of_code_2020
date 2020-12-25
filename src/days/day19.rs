@@ -1,3 +1,4 @@
+use fnv::FnvBuildHasher;
 use regex::Regex;
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -24,11 +25,7 @@ struct Grammar {
     options: Vec<Matcher>,
 }
 
-trait BuildOptions {
-    fn regex(&self, anchor: bool, limit: usize) -> String;
-}
-
-impl BuildOptions for Grammar {
+impl Grammar {
     fn regex(&self, anchor: bool, limit: usize) -> String {
         let mut res = String::new();
 
@@ -90,8 +87,8 @@ fn load_input(input: &str) -> (Rc<Grammar>, Vec<&str>) {
         .filter(|l| !l.is_empty())
         .partition(|line| line.starts_with('a') || line.starts_with('b'));
 
-    let mut grammars = HashMap::new();
-    let mut to_do = HashMap::new();
+    let mut grammars = HashMap::with_capacity_and_hasher(ruleset.len(), FnvBuildHasher::default());
+    let mut to_do = HashMap::with_capacity_and_hasher(ruleset.len(), FnvBuildHasher::default());
 
     for line in ruleset {
         let colon = line.find(':').expect("exist");
@@ -100,7 +97,7 @@ fn load_input(input: &str) -> (Rc<Grammar>, Vec<&str>) {
         let entry = grammars
             .entry(rule_num)
             .or_insert(Grammar { options: vec![] });
-        let to_apply = to_do.entry(rule_num).or_insert(Vec::new());
+        let to_apply = to_do.entry(rule_num).or_insert_with(Vec::new);
 
         let terms = line[colon + 2..].split(' ');
 
@@ -123,7 +120,8 @@ fn load_input(input: &str) -> (Rc<Grammar>, Vec<&str>) {
         }
     }
 
-    let mut done: HashMap<usize, Rc<Grammar>> = HashMap::new();
+    let mut done: HashMap<usize, Rc<Grammar>, FnvBuildHasher> =
+        HashMap::with_capacity_and_hasher(to_do.len(), FnvBuildHasher::default());
 
     while !to_do.is_empty() {
         let (&ind, _) = to_do
@@ -173,7 +171,7 @@ pub fn run() -> (String, String, Duration) {
 
 #[cfg(test)]
 mod tests {
-    use crate::days::day19::{load_input, BuildOptions, Grammar, Matcher, MatcherParam};
+    use crate::days::day19::{load_input, Grammar, Matcher, MatcherParam};
     use std::rc::Rc;
 
     #[test]

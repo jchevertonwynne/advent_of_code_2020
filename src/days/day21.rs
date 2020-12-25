@@ -1,3 +1,4 @@
+use fnv::FnvBuildHasher;
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
@@ -27,7 +28,8 @@ fn load_foods(input: &str) -> Vec<Food> {
 }
 
 fn solve(foods: Vec<Food>) -> (usize, String) {
-    let mut known_allergen: HashMap<&str, &str> = HashMap::new();
+    let mut known_allergen: HashMap<&str, &str, FnvBuildHasher> =
+        HashMap::with_hasher(FnvBuildHasher::default());
 
     let mut working_foods = foods.to_vec();
 

@@ -1,4 +1,3 @@
-use std::convert::TryInto;
 use std::time::{Duration, Instant};
 
 fn load_cups(mut input: usize) -> [u8; 9] {
@@ -62,7 +61,7 @@ fn part1(cups: &[u8], turns: usize) -> usize {
 }
 
 fn part2(cups: &[u8]) -> usize {
-    let mut tiles: [u32; 1_000_001] = (1..=1_000_001).collect::<Vec<_>>().try_into().unwrap();
+    let mut tiles = (1..=1_000_001).collect::<Vec<_>>();
     for (p, n) in cups.iter().skip(1).zip(cups.iter()) {
         tiles[*n as usize] = *p as u32;
     }

@@ -1,4 +1,4 @@
-use fnv::{FnvBuildHasher, FnvHashMap};
+use fnv::FnvBuildHasher;
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
@@ -28,31 +28,11 @@ fn part1(nums: &[u32]) -> usize {
     process(nums, 2020)
 }
 
-// fn part2(nums: &[u32]) -> usize {
-//     let mut spoken_small = vec![0u32; 30_000_001];
-//     for (i, next) in (1..).zip(nums) {
-//         spoken_small[*next as usize] = i;
-//     }
-//
-//     let mut last_spoken = *nums.last().unwrap();
-//     for i in (nums.len()) as u32..30_000_000 {
-//         let mut result = spoken_small[last_spoken as usize];
-//         if result != 0 {
-//             result = i - result;
-//         }
-//
-//         spoken_small[last_spoken as usize] = i;
-//         last_spoken = result;
-//     }
-//
-//     last_spoken as usize
-// }
-
 fn part2(nums: &[u32]) -> usize {
     const LIM: u32 = 1 << 22;
     let mut spoken_small = vec![0u32; LIM as usize];
     let mut spoken_large: HashMap<u32, u32, FnvBuildHasher> =
-        FnvHashMap::with_capacity_and_hasher(1_400_000, FnvBuildHasher::default());
+        HashMap::with_capacity_and_hasher(1_400_000, FnvBuildHasher::default());
     for (i, next) in (1..).zip(nums) {
         spoken_small[*next as usize] = i;
     }

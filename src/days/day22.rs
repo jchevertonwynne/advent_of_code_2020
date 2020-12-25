@@ -1,7 +1,13 @@
+use fnv::FnvBuildHasher;
 use std::collections::{HashSet, VecDeque};
 use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/22.txt");
+
+enum Player {
+    Player1,
+    Player2,
+}
 
 fn load_players(input: &str) -> (VecDeque<i8>, VecDeque<i8>) {
     let mut players = input.split("\n\n");
@@ -47,13 +53,9 @@ fn part1(mut player_1: VecDeque<i8>, mut player_2: VecDeque<i8>) -> usize {
         .sum()
 }
 
-enum Player {
-    Player1,
-    Player2,
-}
-
 fn recursive_combat_loop(player_1: &mut VecDeque<i8>, player_2: &mut VecDeque<i8>) -> Player {
-    let mut seen_stacks: HashSet<(VecDeque<i8>, VecDeque<i8>)> = HashSet::new();
+    let mut seen_stacks: HashSet<(VecDeque<i8>, VecDeque<i8>), FnvBuildHasher> =
+        HashSet::with_hasher(FnvBuildHasher::default());
 
     while !player_1.is_empty() && !player_2.is_empty() {
         let player1_deck = player_1.clone();
@@ -79,16 +81,10 @@ fn recursive_combat_loop(player_1: &mut VecDeque<i8>, player_2: &mut VecDeque<i8
             continue;
         }
 
-        let mut sub_p1 = player_1
-            .iter()
-            .take(a as usize)
-            .copied()
-            .collect::<VecDeque<i8>>();
-        let mut sub_p2 = player_2
-            .iter()
-            .take(b as usize)
-            .copied()
-            .collect::<VecDeque<i8>>();
+        let mut sub_p1 = player_1.clone();
+        sub_p1.resize(a as usize, 0);
+        let mut sub_p2 = player_2.clone();
+        sub_p2.resize(b as usize, 0);
 
         match recursive_combat_loop(&mut sub_p1, &mut sub_p2) {
             Player::Player1 => {
@@ -102,10 +98,9 @@ fn recursive_combat_loop(player_1: &mut VecDeque<i8>, player_2: &mut VecDeque<i8
         }
     }
 
-    if player_1.is_empty() {
-        Player::Player2
-    } else {
-        Player::Player1
+    match player_1.is_empty() {
+        true => Player::Player2,
+        false => Player::Player1,
     }
 }
 

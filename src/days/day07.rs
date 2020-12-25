@@ -1,3 +1,4 @@
+use fnv::FnvBuildHasher;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::ptr::slice_from_raw_parts;
@@ -7,7 +8,7 @@ use std::time::{Duration, Instant};
 const INPUT: &str = include_str!("../../files/07.txt");
 
 struct BagTree<'a> {
-    nodes: HashMap<&'a str, Rc<Bag<'a>>>,
+    nodes: HashMap<&'a str, Rc<Bag<'a>>, FnvBuildHasher>,
 }
 
 struct Bag<'a> {
@@ -51,7 +52,8 @@ impl BagTree<'_> {
             })
             .collect();
 
-        let mut nodes = HashMap::with_capacity(colour_and_children.len());
+        let mut nodes =
+            HashMap::with_capacity_and_hasher(colour_and_children.len(), FnvBuildHasher::default());
         colour_and_children.iter().for_each(|&(colour, _)| {
             nodes.insert(
                 colour,
@@ -101,10 +103,10 @@ impl BagTree<'_> {
 
 impl<'c> Bag<'c> {
     fn parents(&self) -> usize {
-        self.parents_helper(&mut HashSet::new())
+        self.parents_helper(&mut HashSet::with_hasher(FnvBuildHasher::default()))
     }
 
-    fn parents_helper<'a, 'b>(&'a self, seen: &'b mut HashSet<&'c str>) -> usize {
+    fn parents_helper<'a, 'b>(&'a self, seen: &'b mut HashSet<&'c str, FnvBuildHasher>) -> usize {
         self.parents
             .borrow()
             .iter()

@@ -1,3 +1,4 @@
+use fnv::FnvBuildHasher;
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
@@ -110,12 +111,13 @@ fn part1<'a>(rows: &[Row], tickets: &'a [Ticket]) -> (usize, Vec<&'a Ticket>) {
 }
 
 fn reduce_to_unique<'a>(rows: &'a [Row], tickets: &'_ [&Ticket]) -> Vec<&'a str> {
-    let mut fixing_possibilities = HashMap::new();
+    let mut fixing_possibilities =
+        HashMap::with_capacity_and_hasher(rows.len(), FnvBuildHasher::default());
 
     for row in rows {
         let entry = fixing_possibilities
             .entry(row.name)
-            .or_insert_with(HashSet::new);
+            .or_insert_with(|| HashSet::with_hasher(FnvBuildHasher::default()));
 
         for i in 0..tickets[0].len() {
             if tickets.iter().all(|t| row.valid(t[i])) {
@@ -124,7 +126,8 @@ fn reduce_to_unique<'a>(rows: &'a [Row], tickets: &'_ [&Ticket]) -> Vec<&'a str>
         }
     }
 
-    let mut fixed: HashMap<usize, &str> = HashMap::new();
+    let mut fixed: HashMap<usize, &str, FnvBuildHasher> =
+        HashMap::with_hasher(FnvBuildHasher::default());
 
     while !fixing_possibilities.is_empty() {
         let singulars = fixing_possibilities

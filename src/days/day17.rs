@@ -4,7 +4,7 @@ use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/17.txt");
 
-fn load_world(input: &str) -> HashSet<(i8, i8, i8)> {
+fn load_world(input: &str) -> HashSet<(i8, i8, i8), FnvBuildHasher> {
     input
         .lines()
         .enumerate()
@@ -19,7 +19,7 @@ fn load_world(input: &str) -> HashSet<(i8, i8, i8)> {
         .collect()
 }
 
-fn part1(mut world: HashSet<(i8, i8, i8)>) -> usize {
+fn part1(mut world: HashSet<(i8, i8, i8), FnvBuildHasher>) -> usize {
     let mut neighbour_count: HashMap<(i8, i8, i8), usize, FnvBuildHasher> =
         FnvHashMap::with_hasher(FnvBuildHasher::default());
 
@@ -38,7 +38,7 @@ fn part1(mut world: HashSet<(i8, i8, i8)>) -> usize {
     }
 
     for _ in 0..6 {
-        let mut next_world = HashSet::new();
+        let mut next_world = HashSet::with_hasher(FnvBuildHasher::default());
         let mut next_neighbour_count: HashMap<(i8, i8, i8), usize, FnvBuildHasher> =
             FnvHashMap::with_hasher(FnvBuildHasher::default());
         for (&tile, &neighbours) in &neighbour_count {
@@ -64,7 +64,7 @@ fn part1(mut world: HashSet<(i8, i8, i8)>) -> usize {
     world.len()
 }
 
-fn part2(world: HashSet<(i8, i8, i8)>) -> usize {
+fn part2(world: HashSet<(i8, i8, i8), FnvBuildHasher>) -> usize {
     let mut world = {
         let mut w = FnvHashSet::with_capacity_and_hasher(world.len(), FnvBuildHasher::default());
         for (i, j, k) in world {
@@ -125,6 +125,7 @@ pub fn run() -> (String, String, Duration) {
 #[cfg(test)]
 mod tests {
     use crate::days::day17::{load_world, part1, part2, INPUT};
+    use fnv::FnvBuildHasher;
     use std::collections::HashSet;
 
     #[test]
@@ -142,7 +143,7 @@ mod tests {
         let world = load_world(s);
         let expected = vec![(0, 1, 0), (1, 2, 0), (2, 0, 0), (2, 1, 0), (2, 2, 0)]
             .into_iter()
-            .collect::<HashSet<_>>();
+            .collect::<HashSet<_, FnvBuildHasher>>();
         assert_eq!(world, expected);
 
         assert_eq!(part1(world.clone()), 112);

@@ -147,6 +147,9 @@ impl World {
     }
 
     fn gen_line_of_sight_options(&mut self) {
+        let size = self.floor.len() * self.floor[0].len();
+        self.line_of_sight = Vec::with_capacity(size);
+
         for i in 0..self.floor.len() {
             let mut row = Vec::new();
             for j in 0..self.floor[0].len() {
@@ -192,15 +195,12 @@ fn load_world(input: &str) -> World {
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
-    let size = contents.len() * contents[0].len();
-    let mut world = World {
+    World {
         floor: contents,
         first: true,
-        to_apply: Vec::with_capacity(size),
+        to_apply: Vec::new(),
         line_of_sight: Vec::new(),
-    };
-    world.gen_line_of_sight_options();
-    world
+    }
 }
 
 fn part1(mut world: World) -> usize {
@@ -215,9 +215,10 @@ fn part2(mut world: World) -> usize {
 
 pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
-    let world = load_world(INPUT);
+    let mut world = load_world(INPUT);
     let p1 = part1(world.clone());
-    let p2 = part2(world.clone());
+    world.gen_line_of_sight_options();
+    let p2 = part2(world);
 
     (p1.to_string(), p2.to_string(), start.elapsed())
 }
@@ -228,9 +229,10 @@ mod test {
 
     #[test]
     fn test_actual() {
-        let world = load_world(INPUT);
+        let mut world = load_world(INPUT);
         assert_eq!(part1(world.clone()), 2_204);
-        assert_eq!(part2(world.clone()), 1_986);
+        world.gen_line_of_sight_options();
+        assert_eq!(part2(world), 1_986);
     }
 
     #[test]
@@ -245,8 +247,9 @@ L.LLLLL.LL
 LLLLLLLLLL
 L.LLLLLL.L
 L.LLLLL.LL";
-        let world = load_world(s);
+        let mut world = load_world(s);
         assert_eq!(part1(world.clone()), 37);
-        assert_eq!(part2(world.clone()), 26);
+        world.gen_line_of_sight_options();
+        assert_eq!(part2(world), 26);
     }
 }
