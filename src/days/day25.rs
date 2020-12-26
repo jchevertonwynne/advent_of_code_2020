@@ -1,13 +1,13 @@
 use std::time::{Duration, Instant};
 
-fn find_loops(pk: usize) -> usize {
-    let modulo = 20201227;
+const MODULO: usize = 20_201_227;
 
+fn find_loops(pk: usize) -> usize {
     let mut res = 0;
     let mut v = 1;
     while v != pk {
         v *= 7;
-        v %= modulo;
+        v %= MODULO;
         res += 1;
     }
 
@@ -19,7 +19,7 @@ fn transform(subject: usize, loops: usize) -> usize {
 
     for _ in 0..loops {
         r *= subject;
-        r %= 20201227;
+        r %= MODULO;
     }
 
     r

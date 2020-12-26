@@ -9,7 +9,7 @@ enum Player {
     Player2,
 }
 
-fn load_players(input: &str) -> (VecDeque<i8>, VecDeque<i8>) {
+fn load_players(input: &str) -> (VecDeque<u8>, VecDeque<u8>) {
     let mut players = input.split("\n\n");
     let p1 = players.next().expect("should have a player");
     let p2 = players.next().expect("should have a player");
@@ -28,7 +28,7 @@ fn load_players(input: &str) -> (VecDeque<i8>, VecDeque<i8>) {
     (p1, p2)
 }
 
-fn part1(mut player_1: VecDeque<i8>, mut player_2: VecDeque<i8>) -> usize {
+fn part1(mut player_1: VecDeque<u8>, mut player_2: VecDeque<u8>) -> usize {
     while !player_1.is_empty() && !player_2.is_empty() {
         let a = player_1.pop_front().unwrap();
         let b = player_2.pop_front().unwrap();
@@ -53,8 +53,16 @@ fn part1(mut player_1: VecDeque<i8>, mut player_2: VecDeque<i8>) -> usize {
         .sum()
 }
 
-fn recursive_combat_loop(player_1: &mut VecDeque<i8>, player_2: &mut VecDeque<i8>) -> Player {
-    let mut seen_stacks: HashSet<(VecDeque<i8>, VecDeque<i8>), FnvBuildHasher> =
+fn recursive_combat_loop(
+    player_1: &mut VecDeque<u8>,
+    player_2: &mut VecDeque<u8>,
+    sub_game: bool,
+) -> Player {
+    if sub_game && player_1.iter().max().unwrap() > player_2.iter().max().unwrap() {
+        return Player::Player1;
+    }
+
+    let mut seen_stacks: HashSet<(VecDeque<u8>, VecDeque<u8>), FnvBuildHasher> =
         HashSet::with_hasher(FnvBuildHasher::default());
 
     while !player_1.is_empty() && !player_2.is_empty() {
@@ -70,7 +78,7 @@ fn recursive_combat_loop(player_1: &mut VecDeque<i8>, player_2: &mut VecDeque<i8
         let a = player_1.pop_front().unwrap();
         let b = player_2.pop_front().unwrap();
 
-        if a > player_1.len() as i8 || b > player_2.len() as i8 {
+        if a > player_1.len() as u8 || b > player_2.len() as u8 {
             if a > b {
                 player_1.push_back(a);
                 player_1.push_back(b);
@@ -86,7 +94,7 @@ fn recursive_combat_loop(player_1: &mut VecDeque<i8>, player_2: &mut VecDeque<i8
         let mut sub_p2 = player_2.clone();
         sub_p2.resize(b as usize, 0);
 
-        match recursive_combat_loop(&mut sub_p1, &mut sub_p2) {
+        match recursive_combat_loop(&mut sub_p1, &mut sub_p2, true) {
             Player::Player1 => {
                 player_1.push_back(a);
                 player_1.push_back(b);
@@ -104,8 +112,8 @@ fn recursive_combat_loop(player_1: &mut VecDeque<i8>, player_2: &mut VecDeque<i8
     }
 }
 
-fn part2(mut player_1: VecDeque<i8>, mut player_2: VecDeque<i8>) -> usize {
-    let winner = match recursive_combat_loop(&mut player_1, &mut player_2) {
+fn part2(mut player_1: VecDeque<u8>, mut player_2: VecDeque<u8>) -> usize {
+    let winner = match recursive_combat_loop(&mut player_1, &mut player_2, false) {
         Player::Player1 => player_1,
         Player::Player2 => player_2,
     };
