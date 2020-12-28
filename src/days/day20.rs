@@ -59,12 +59,6 @@ impl Tile {
         res
     }
 
-    fn flip_vert(&self) -> Tile {
-        let mut res = self.clone();
-        res.0.reverse();
-        res
-    }
-
     fn rotate(&self) -> Tile {
         let mut res = Tile::default();
 
@@ -78,7 +72,7 @@ impl Tile {
     }
 
     fn rotations(&self) -> Vec<Tile> {
-        let mut res = Vec::new();
+        let mut res = Vec::with_capacity(8);
 
         res.push(self.clone());
         for _ in 0..3 {
@@ -87,18 +81,6 @@ impl Tile {
 
         let tile_h = self.flip_hori();
         res.push(tile_h);
-        for _ in 0..3 {
-            res.push(res.last().expect("should have element").rotate())
-        }
-
-        let tile_v = self.flip_vert();
-        res.push(tile_v);
-        for _ in 0..3 {
-            res.push(res.last().expect("should have element").rotate())
-        }
-
-        let tile_v = self.flip_vert().flip_hori();
-        res.push(tile_v);
         for _ in 0..3 {
             res.push(res.last().expect("should have element").rotate())
         }
@@ -510,8 +492,6 @@ abcdefghij"
         println!("{:?}", t.rotate().rotate());
         println!("{:?}", t.rotate().rotate().rotate());
         println!("{:?}", t.flip_hori());
-        println!("{:?}", t.flip_vert());
-        println!("{:?}", t.flip_vert().flip_hori());
         println!("{:?}", t.left());
         println!("{:?}", t.right());
         println!("{:?}", t.top());
