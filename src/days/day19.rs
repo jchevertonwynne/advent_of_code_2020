@@ -1,4 +1,4 @@
-use fnv::FnvBuildHasher;
+use fxhash::FxBuildHasher;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::rc::Rc;
@@ -10,8 +10,6 @@ const INPUT2: &str = include_str!("../../files/19_2.txt");
 #[derive(Debug, PartialEq)]
 enum Matcher {
     Literal(char),
-    // Singular(MatcherParam),
-    // Double(MatcherParam, MatcherParam)
     Sequence(Vec<MatcherParam>),
 }
 
@@ -38,7 +36,7 @@ impl Grammar {
             return res;
         }
 
-        for matcher in &self.matchers {
+        'matcher_loop: for matcher in &self.matchers {
             match matcher {
                 Matcher::Literal(c) => {
                     if s.chars().next().unwrap() == *c {
@@ -46,28 +44,24 @@ impl Grammar {
                     }
                 }
                 Matcher::Sequence(params) => {
-                    let mut valid = true;
                     let mut potential = vec![s];
                     for param in params {
-                        if potential.is_empty() {
-                            valid = false;
-                            break;
-                        }
                         let mut new_pot = Vec::new();
                         match param {
                             MatcherParam::Recurse => {
                                 new_pot.extend(potential.iter().flat_map(|p| self.part_match(p)));
-                            },
+                            }
                             MatcherParam::Grammar(g) => {
                                 new_pot.extend(potential.iter().flat_map(|p| g.part_match(p)));
                             }
+                        };
+                        if potential.is_empty() {
+                            continue 'matcher_loop;
                         }
                         potential = new_pot;
                     }
 
-                    if valid {
-                        res.extend(potential);
-                    }
+                    res.extend(potential);
                 }
             }
         }
@@ -82,8 +76,8 @@ fn load_input(input: &str) -> (Rc<Grammar>, Vec<&str>) {
         .filter(|l| !l.is_empty())
         .partition(|line| line.starts_with('a') || line.starts_with('b'));
 
-    let mut grammars = HashMap::with_capacity_and_hasher(ruleset.len(), FnvBuildHasher::default());
-    let mut to_do = HashMap::with_capacity_and_hasher(ruleset.len(), FnvBuildHasher::default());
+    let mut grammars = HashMap::with_capacity_and_hasher(ruleset.len(), FxBuildHasher::default());
+    let mut to_do = HashMap::with_capacity_and_hasher(ruleset.len(), FxBuildHasher::default());
 
     for line in ruleset {
         let colon = line.find(':').expect("exist");
@@ -115,8 +109,8 @@ fn load_input(input: &str) -> (Rc<Grammar>, Vec<&str>) {
         }
     }
 
-    let mut done: HashMap<usize, Rc<Grammar>, FnvBuildHasher> =
-        HashMap::with_capacity_and_hasher(to_do.len(), FnvBuildHasher::default());
+    let mut done: HashMap<usize, Rc<Grammar>, FxBuildHasher> =
+        HashMap::with_capacity_and_hasher(to_do.len(), FxBuildHasher::default());
 
     while !to_do.is_empty() {
         let (&ind, _) = to_do
