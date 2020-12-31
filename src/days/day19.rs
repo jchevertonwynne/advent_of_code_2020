@@ -1,3 +1,4 @@
+use arrayvec::ArrayVec;
 use fxhash::FxBuildHasher;
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -7,21 +8,16 @@ use std::time::{Duration, Instant};
 const INPUT: &str = include_str!("../../files/19.txt");
 const INPUT2: &str = include_str!("../../files/19_2.txt");
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 enum Matcher {
     Literal(char),
-    Sequence(Vec<MatcherParam>),
-}
-
-#[derive(Debug, PartialEq)]
-enum MatcherParam {
     Recurse,
     Grammar(Rc<Grammar>),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 struct Grammar {
-    matchers: Vec<Matcher>,
+    matchers: ArrayVec<[Vec<Matcher>; 2]>,
 }
 
 impl Grammar {
@@ -37,33 +33,33 @@ impl Grammar {
         }
 
         'matcher_loop: for matcher in &self.matchers {
-            match matcher {
-                Matcher::Literal(c) => {
-                    if s.chars().next().unwrap() == *c {
-                        res.push(&s[1..]);
+            let mut potential = vec![s];
+            for criteria in matcher {
+                let mut new_pot = Vec::new();
+                match criteria {
+                    Matcher::Literal(c) => {
+                        new_pot.extend(potential.iter().filter_map(|p| {
+                            if p.chars().next() == Some(*c) {
+                                Some(&p[1..])
+                            } else {
+                                None
+                            }
+                        }));
+                    }
+                    Matcher::Recurse => {
+                        new_pot.extend(potential.iter().flat_map(|p| self.part_match(p)))
+                    }
+                    Matcher::Grammar(g) => {
+                        new_pot.extend(potential.iter().flat_map(|p| g.part_match(p)))
                     }
                 }
-                Matcher::Sequence(params) => {
-                    let mut potential = vec![s];
-                    for param in params {
-                        let mut new_pot = Vec::new();
-                        match param {
-                            MatcherParam::Recurse => {
-                                new_pot.extend(potential.iter().flat_map(|p| self.part_match(p)));
-                            }
-                            MatcherParam::Grammar(g) => {
-                                new_pot.extend(potential.iter().flat_map(|p| g.part_match(p)));
-                            }
-                        };
-                        if potential.is_empty() {
-                            continue 'matcher_loop;
-                        }
-                        potential = new_pot;
-                    }
-
-                    res.extend(potential);
+                if new_pot.is_empty() {
+                    continue 'matcher_loop;
                 }
+                potential = new_pot;
             }
+
+            res.extend(potential);
         }
 
         res
@@ -83,9 +79,9 @@ fn load_input(input: &str) -> (Rc<Grammar>, Vec<&str>) {
         let colon = line.find(':').expect("exist");
         let rule_num = line[..colon].parse::<usize>().expect("pls");
 
-        let entry = grammars
-            .entry(rule_num)
-            .or_insert(Grammar { matchers: vec![] });
+        let entry = grammars.entry(rule_num).or_insert(Grammar {
+            matchers: ArrayVec::new(),
+        });
         let to_apply = to_do.entry(rule_num).or_insert_with(Vec::new);
 
         let terms = line[colon + 2..].split(' ');
@@ -96,7 +92,7 @@ fn load_input(input: &str) -> (Rc<Grammar>, Vec<&str>) {
             if term.starts_with('\"') {
                 entry
                     .matchers
-                    .push(Matcher::Literal(term.chars().nth(1).expect("exist")));
+                    .push(vec![Matcher::Literal(term.chars().nth(1).expect("exist"))]);
             } else if term == "|" {
                 to_apply.push(curr.clone());
                 curr.clear();
@@ -122,17 +118,23 @@ fn load_input(input: &str) -> (Rc<Grammar>, Vec<&str>) {
             })
             .expect("should be a thing");
 
-        let opts = to_do.remove(&ind).expect("index should be removeable");
+        let patterns = to_do.remove(&ind).expect("index should be removeable");
         let mut grammar = grammars.remove(&ind).expect("index should be removeable");
-        for opt in opts {
-            let item = opt
-                .iter()
-                .map(|o| match done.get(o) {
-                    None => MatcherParam::Recurse,
-                    Some(v) => MatcherParam::Grammar(Rc::clone(v)),
-                })
-                .collect::<Vec<_>>();
-            grammar.matchers.push(Matcher::Sequence(item));
+        for pattern in patterns {
+            let mut created_pattern = Vec::new();
+            for subpattern_id in &pattern {
+                match done.get(subpattern_id) {
+                    None => created_pattern.push(Matcher::Recurse),
+                    Some(v) => {
+                        if v.matchers.len() == 1 {
+                            created_pattern.extend(v.matchers[0].clone());
+                        } else {
+                            created_pattern.push(Matcher::Grammar(Rc::clone(v)))
+                        }
+                    }
+                };
+            }
+            grammar.matchers.push(created_pattern);
         }
 
         done.insert(ind, Rc::new(grammar));
@@ -157,7 +159,7 @@ pub fn run() -> (String, String, Duration) {
 
 #[cfg(test)]
 mod tests {
-    use crate::days::day19::{load_input, Grammar, Matcher, MatcherParam};
+    use crate::days::day19::{load_input, Grammar, Matcher};
     use std::rc::Rc;
 
     #[test]
@@ -194,54 +196,56 @@ aaaabbb";
     }
 
     fn make_grammar() -> Rc<Grammar> {
-        let r5 = Rc::new(Grammar {
-            matchers: vec![Matcher::Literal('b')],
-        });
-        let r4 = Rc::new(Grammar {
-            matchers: vec![Matcher::Literal('a')],
-        });
         let r3 = Rc::new(Grammar {
             matchers: vec![
-                Matcher::Sequence(vec![
-                    MatcherParam::Grammar(Rc::clone(&r4)),
-                    MatcherParam::Grammar(Rc::clone(&r5)),
-                ]),
-                Matcher::Sequence(vec![
-                    MatcherParam::Grammar(Rc::clone(&r5)),
-                    MatcherParam::Grammar(Rc::clone(&r4)),
-                ]),
-            ],
+                vec![
+                    Matcher::Literal('a'),
+                    Matcher::Literal('b'),
+                ],
+                vec![
+                    Matcher::Literal('b'),
+                    Matcher::Literal('a'),
+                ],
+            ]
+            .into_iter()
+            .collect(),
         });
         let r2 = Rc::new(Grammar {
             matchers: vec![
-                Matcher::Sequence(vec![
-                    MatcherParam::Grammar(Rc::clone(&r4)),
-                    MatcherParam::Grammar(Rc::clone(&r4)),
-                ]),
-                Matcher::Sequence(vec![
-                    MatcherParam::Grammar(Rc::clone(&r5)),
-                    MatcherParam::Grammar(Rc::clone(&r5)),
-                ]),
-            ],
+                vec![
+                    Matcher::Literal('a'),
+                    Matcher::Literal('a'),
+                ],
+                vec![
+                    Matcher::Literal('b'),
+                    Matcher::Literal('b'),
+                ],
+            ]
+            .into_iter()
+            .collect(),
         });
         let r1 = Rc::new(Grammar {
             matchers: vec![
-                Matcher::Sequence(vec![
-                    MatcherParam::Grammar(Rc::clone(&r2)),
-                    MatcherParam::Grammar(Rc::clone(&r3)),
-                ]),
-                Matcher::Sequence(vec![
-                    MatcherParam::Grammar(Rc::clone(&r3)),
-                    MatcherParam::Grammar(Rc::clone(&r2)),
-                ]),
-            ],
+                vec![
+                    Matcher::Grammar(Rc::clone(&r2)),
+                    Matcher::Grammar(Rc::clone(&r3)),
+                ],
+                vec![
+                    Matcher::Grammar(Rc::clone(&r3)),
+                    Matcher::Grammar(Rc::clone(&r2)),
+                ],
+            ]
+            .into_iter()
+            .collect(),
         });
         Rc::new(Grammar {
-            matchers: vec![Matcher::Sequence(vec![
-                MatcherParam::Grammar(Rc::clone(&r4)),
-                MatcherParam::Grammar(Rc::clone(&r1)),
-                MatcherParam::Grammar(Rc::clone(&r5)),
-            ])],
+            matchers: vec![vec![
+                Matcher::Literal('a'),
+                Matcher::Grammar(Rc::clone(&r1)),
+                Matcher::Literal('b'),
+            ]]
+            .into_iter()
+            .collect(),
         })
     }
 }

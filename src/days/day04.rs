@@ -11,7 +11,6 @@ struct Record<'a> {
     hair_colour: Option<&'a str>,
     eye_colour: Option<&'a str>,
     passport_id: Option<&'a str>,
-    country_id: Option<&'a str>,
 }
 
 fn number_in_range(year: &str, min_year: usize, max_year: usize) -> bool {
@@ -44,7 +43,7 @@ impl Record<'_> {
 
     fn valid_birth_year(&self) -> bool {
         match &self.birth_year {
-            Some(y) => number_in_range(y, 1920, 2002),
+            Some(year) => number_in_range(year, 1920, 2002),
             None => false,
         }
     }
@@ -128,7 +127,7 @@ fn solve(input: &str) -> (usize, usize) {
                         "hcl" => curr.hair_colour = status,
                         "ecl" => curr.eye_colour = status,
                         "pid" => curr.passport_id = status,
-                        "cid" => curr.country_id = status,
+                        "cid" => (),
                         _ => panic!("bad input: {}", characteristic),
                     }
                 }

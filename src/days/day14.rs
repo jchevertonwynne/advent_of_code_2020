@@ -18,7 +18,42 @@ enum InputLine {
     Setting(usize, usize),
 }
 
-fn load_program(input: &str) -> Vec<InputLine> {
+fn p2_applier(
+    mem: &mut HashMap<usize, usize, FxBuildHasher>,
+    orig_addr: usize,
+    addr: usize,
+    ind: usize,
+    mask: &[Mask; 36],
+    val: usize,
+) {
+    if ind == mask.len() {
+        mem.insert(addr, val);
+        return;
+    }
+
+    match mask[ind] {
+        Mask::Unset => {
+            p2_applier(mem, orig_addr, addr + (1 << ind), ind + 1, mask, val);
+            p2_applier(mem, orig_addr, addr, ind + 1, mask, val);
+        }
+        Mask::One => p2_applier(mem, orig_addr, addr + (1 << ind), ind + 1, mask, val),
+        Mask::Zero => p2_applier(
+            mem,
+            orig_addr,
+            addr | (orig_addr & (1 << ind)),
+            ind + 1,
+            mask,
+            val,
+        ),
+    }
+}
+
+fn solve(input: &str) -> (usize, usize) {
+    let mut mask = [Mask::Unset; 36];
+    let mut mem_p1: HashMap<usize, usize, FxBuildHasher> =
+        HashMap::with_hasher(FxBuildHasher::default());
+    let mut mem_p2: HashMap<usize, usize, FxBuildHasher> =
+        HashMap::with_hasher(FxBuildHasher::default());
     input
         .lines()
         .map(|line| {
@@ -49,129 +84,35 @@ fn load_program(input: &str) -> Vec<InputLine> {
                 InputLine::Setting(mem, val)
             }
         })
-        .collect()
-}
-
-fn part1(instructions: &[InputLine]) -> usize {
-    let mut mask = [Mask::Unset; 36];
-    let mut mem = HashMap::with_hasher(FxBuildHasher::default());
-    for instruction in instructions {
-        match *instruction {
+        .for_each(|instruction| match instruction {
             InputLine::Mask(m) => mask = m,
             InputLine::Setting(addr, val) => {
-                let mut apply = 0;
-                for (i, m) in mask.iter().enumerate() {
-                    match m {
-                        Mask::Unset => apply += val & (1 << i),
-                        Mask::One => apply += 1 << i,
-                        Mask::Zero => (),
-                    }
-                }
-                mem.insert(addr, apply);
+                let apply = mask.iter().enumerate().fold(0, |acc, (i, m)| match m {
+                    Mask::Unset => acc + (val & (1 << i)),
+                    Mask::One => acc + (1 << i),
+                    Mask::Zero => acc,
+                });
+                mem_p1.insert(addr, apply);
+                p2_applier(&mut mem_p2, addr, 0, 0, &mask, val)
             }
-        }
-    }
+        });
 
-    mem.values().sum()
-}
-
-fn applier(
-    mem: &mut HashMap<usize, usize, FxBuildHasher>,
-    orig_addr: usize,
-    addr: usize,
-    ind: usize,
-    mask: &[Mask; 36],
-    val: usize,
-) {
-    if ind == mask.len() {
-        mem.insert(addr, val);
-        return;
-    }
-
-    match mask[ind] {
-        Mask::Unset => {
-            applier(mem, orig_addr, addr + (1 << ind), ind + 1, mask, val);
-            applier(mem, orig_addr, addr, ind + 1, mask, val);
-        }
-        Mask::One => applier(mem, orig_addr, addr + (1 << ind), ind + 1, mask, val),
-        Mask::Zero => applier(
-            mem,
-            orig_addr,
-            addr | (orig_addr & (1 << ind)),
-            ind + 1,
-            mask,
-            val,
-        ),
-    }
-}
-
-fn part2(instructions: &[InputLine]) -> usize {
-    let mut mask = [Mask::Unset; 36];
-    let mut mem: HashMap<usize, usize, FxBuildHasher> =
-        HashMap::with_hasher(FxBuildHasher::default());
-    for instruction in instructions {
-        match *instruction {
-            InputLine::Mask(m) => mask = m,
-            InputLine::Setting(addr, val) => applier(&mut mem, addr, 0, 0, &mask, val),
-        }
-    }
-
-    mem.values().sum()
+    (mem_p1.values().sum(), mem_p2.values().sum())
 }
 
 pub fn run() -> (String, String, Duration) {
     let start = Instant::now();
-    let instructions = load_program(INPUT);
-    let p1 = part1(&instructions);
-    let p2 = part2(&instructions);
+    let (p1, p2) = solve(INPUT);
 
     (p1.to_string(), p2.to_string(), start.elapsed())
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::days::day14::{applier, load_program, part1, part2, InputLine, INPUT};
-    use fxhash::FxBuildHasher;
-    use std::collections::HashMap;
+    use crate::days::day14::{solve, INPUT};
 
     #[test]
     fn test_actual() {
-        let ins = load_program(INPUT);
-        assert_eq!(part1(&ins), 15_018_100_062_885);
-        assert_eq!(part2(&ins), 5_724_245_857_696);
-    }
-
-    #[test]
-    fn test_example() {
-        let s = "mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X
-mem[8] = 11
-mem[7] = 101
-mem[8] = 0";
-        let ins = load_program(s);
-        assert_eq!(part1(&ins), 165);
-    }
-
-    #[test]
-    fn test_applier() {
-        let s = "mask = 000000000000000000000000000000X1001X
-mem[42] = 100
-mask = 00000000000000000000000000000000X0XX
-mem[26] = 1";
-        let ins = load_program(s);
-        let mask = match ins[0] {
-            InputLine::Mask(m) => m,
-            InputLine::Setting(_, _) => panic!("pls dont be this"),
-        };
-
-        let (addr, val) = match ins[1] {
-            InputLine::Mask(_) => panic!("pls dnt be this"),
-            InputLine::Setting(addr, val) => (addr, val),
-        };
-
-        let mut mem: HashMap<usize, usize, FxBuildHasher> =
-            HashMap::with_hasher(FxBuildHasher::default());
-        applier(&mut mem, addr, 0, 0, &mask, val);
-
-        println!("{:?}", mem);
+        assert_eq!(solve(INPUT), (15_018_100_062_885, 5_724_245_857_696));
     }
 }
