@@ -6,6 +6,7 @@ enum Runnable {
     Single(usize),
     Range(usize, usize),
     Repeat(usize, usize),
+    AllRep(usize)
 }
 
 type RunFunc = fn() -> (String, String, Duration);
@@ -46,6 +47,12 @@ fn main() {
     for arg in args {
         if arg == "!" {
             actions.push(Runnable::Single(opts.len()))
+        } else if arg.starts_with('@') {
+            let repeats = &arg[1..];
+            match repeats.parse::<usize>() {
+                Ok(i) => actions.push(Runnable::AllRep(i)),
+                _ =>  println!("illegal value for repeats: {}", repeats),
+            }
         } else if arg == "." {
             actions.push(Runnable::Range(1, opts.len()))
         } else if arg.contains(':') {
@@ -124,6 +131,25 @@ fn main() {
                 println!("    minimum: {:?}", min);
                 println!("    average: {:?}", running / repeats as u32);
                 println!("    maximum: {:?}", max);
+            }
+            Runnable::AllRep(repeats) => {
+                let mut total = Duration::default();
+                for (i, t) in opts.iter().enumerate() {
+                    println!();
+                    println!("{}", format!("day {} - {} runs", i, repeats));
+                    let mut min = Duration::from_secs(100_000);
+                    for rep in 0..repeats {
+                        let (p1, p2, duration) = t();
+                        if rep == 0 {
+                            println!("    part 1: {}", p1);
+                            println!("    part 2: {}", p2);
+                        }
+                        min = Ord::min(min, duration);
+                        total += duration;
+                    }
+                    println!("    fastest: {:?}", min);
+                    cum_duration += min;
+                }
             }
         }
     }
