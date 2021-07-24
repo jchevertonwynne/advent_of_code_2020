@@ -1,5 +1,4 @@
 use arrayvec::ArrayVec;
-use fxhash::FxBuildHasher;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::rc::Rc;
@@ -22,7 +21,7 @@ struct Grammar {
 
 impl Grammar {
     fn matches(&self, s: &str) -> bool {
-        self.part_match(s).iter().any(|s| s.is_empty())
+        self.part_match(s).into_iter().any(|s| s.is_empty())
     }
 
     fn part_match<'a, 'b>(&'a self, s: &'b str) -> Vec<&'b str> {
@@ -39,7 +38,7 @@ impl Grammar {
                 match criteria {
                     Matcher::Literal(c) => {
                         new_pot.extend(potential.iter().filter_map(|p| {
-                            if p.chars().next() == Some(*c) {
+                            if p.starts_with(*c) {
                                 Some(&p[1..])
                             } else {
                                 None
@@ -72,8 +71,8 @@ fn load_input(input: &str) -> (Rc<Grammar>, Vec<&str>) {
         .filter(|l| !l.is_empty())
         .partition(|line| line.starts_with('a') || line.starts_with('b'));
 
-    let mut grammars = HashMap::with_capacity_and_hasher(ruleset.len(), FxBuildHasher::default());
-    let mut to_do = HashMap::with_capacity_and_hasher(ruleset.len(), FxBuildHasher::default());
+    let mut grammars = HashMap::with_capacity(ruleset.len());
+    let mut to_do = HashMap::with_capacity(ruleset.len());
 
     for line in ruleset {
         let colon = line.find(':').expect("exist");
@@ -105,8 +104,7 @@ fn load_input(input: &str) -> (Rc<Grammar>, Vec<&str>) {
         }
     }
 
-    let mut done: HashMap<usize, Rc<Grammar>, FxBuildHasher> =
-        HashMap::with_capacity_and_hasher(to_do.len(), FxBuildHasher::default());
+    let mut done: HashMap<usize, Rc<Grammar>> = HashMap::with_capacity(to_do.len());
 
     while !to_do.is_empty() {
         let (&ind, _) = to_do
@@ -125,11 +123,11 @@ fn load_input(input: &str) -> (Rc<Grammar>, Vec<&str>) {
             for subpattern_id in &pattern {
                 match done.get(subpattern_id) {
                     None => created_pattern.push(Matcher::Recurse),
-                    Some(v) => {
-                        if v.matchers.len() == 1 {
-                            created_pattern.extend(v.matchers[0].clone());
+                    Some(subpattern) => {
+                        if subpattern.matchers.len() == 1 {
+                            created_pattern.extend(subpattern.matchers[0].clone());
                         } else {
-                            created_pattern.push(Matcher::Grammar(Rc::clone(v)))
+                            created_pattern.push(Matcher::Grammar(Rc::clone(subpattern)))
                         }
                     }
                 };
@@ -184,6 +182,7 @@ aaaabbb";
     #[test]
     fn test_valid_check() {
         let g = make_grammar();
+
         assert_eq!(g.matches("hello"), false);
         assert_eq!(g.matches("aaaabb"), true);
         assert_eq!(g.matches("aaabab"), true);
@@ -198,28 +197,16 @@ aaaabbb";
     fn make_grammar() -> Rc<Grammar> {
         let r3 = Rc::new(Grammar {
             matchers: vec![
-                vec![
-                    Matcher::Literal('a'),
-                    Matcher::Literal('b'),
-                ],
-                vec![
-                    Matcher::Literal('b'),
-                    Matcher::Literal('a'),
-                ],
+                vec![Matcher::Literal('a'), Matcher::Literal('b')],
+                vec![Matcher::Literal('b'), Matcher::Literal('a')],
             ]
             .into_iter()
             .collect(),
         });
         let r2 = Rc::new(Grammar {
             matchers: vec![
-                vec![
-                    Matcher::Literal('a'),
-                    Matcher::Literal('a'),
-                ],
-                vec![
-                    Matcher::Literal('b'),
-                    Matcher::Literal('b'),
-                ],
+                vec![Matcher::Literal('a'), Matcher::Literal('a')],
+                vec![Matcher::Literal('b'), Matcher::Literal('b')],
             ]
             .into_iter()
             .collect(),

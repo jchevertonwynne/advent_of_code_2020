@@ -1,4 +1,3 @@
-use fxhash::FxBuildHasher;
 use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 use std::fmt::{Debug, Formatter};
@@ -89,8 +88,8 @@ impl Tile {
     }
 }
 
-fn load_tiles(input: &str) -> HashMap<usize, Tile, FxBuildHasher> {
-    let mut res = HashMap::with_hasher(FxBuildHasher::default());
+fn load_tiles(input: &str) -> HashMap<usize, Tile> {
+    let mut res = HashMap::new();
 
     for tileset in input.split("\n\n") {
         let mut lines = tileset.lines();
@@ -113,14 +112,14 @@ fn load_tiles(input: &str) -> HashMap<usize, Tile, FxBuildHasher> {
     res
 }
 
-fn part1(tiles: &HashMap<usize, Tile, FxBuildHasher>) -> usize {
-    let mut seen_counts = HashMap::with_hasher(FxBuildHasher::default());
+fn part1(tiles: &HashMap<usize, Tile>) -> usize {
+    let mut seen_counts = HashMap::new();
 
     for (id, tile) in tiles {
         for rot in tile.rotations() {
             seen_counts
                 .entry(rot.top())
-                .or_insert_with(|| HashSet::with_hasher(FxBuildHasher::default()))
+                .or_insert_with(HashSet::new)
                 .insert(*id);
         }
     }
@@ -131,7 +130,7 @@ fn part1(tiles: &HashMap<usize, Tile, FxBuildHasher>) -> usize {
         .flat_map(|kv| kv.1.iter().copied())
         .collect::<Vec<_>>();
 
-    let mut options = HashMap::with_capacity_and_hasher(res.len(), FxBuildHasher::default());
+    let mut options = HashMap::with_capacity(res.len());
     for id in res {
         *options.entry(id).or_insert(0) += 1;
     }
@@ -153,18 +152,15 @@ fn mirror_flip(coords: &[(usize, usize)]) -> Vec<(usize, usize)> {
     coords.iter().map(|&(a, b)| (x - a, b)).collect()
 }
 
-fn part2(tiles: &HashMap<usize, Tile, FxBuildHasher>) -> usize {
-    let mut tiles_that_have_this_edge: HashMap<
-        [char; 10],
-        HashSet<usize, FxBuildHasher>,
-        FxBuildHasher,
-    > = HashMap::with_capacity_and_hasher(tiles.len(), FxBuildHasher::default());
+fn part2(tiles: &HashMap<usize, Tile>) -> usize {
+    let mut tiles_that_have_this_edge: HashMap<[char; 10], HashSet<usize>> =
+        HashMap::with_capacity(tiles.len());
 
     for (id, tile) in tiles {
         for tile in tile.rotations() {
             tiles_that_have_this_edge
                 .entry(tile.top())
-                .or_insert_with(|| HashSet::with_hasher(FxBuildHasher::default()))
+                .or_insert_with(HashSet::new)
                 .insert(*id);
         }
     }
@@ -175,8 +171,7 @@ fn part2(tiles: &HashMap<usize, Tile, FxBuildHasher>) -> usize {
         .flat_map(|kv| kv.1.iter().copied())
         .collect::<Vec<_>>();
 
-    let mut options =
-        HashMap::with_capacity_and_hasher(singular_solutions.len(), FxBuildHasher::default());
+    let mut options = HashMap::with_capacity(singular_solutions.len());
     for id in singular_solutions {
         *options.entry(id).or_insert(0) += 1;
     }
@@ -207,7 +202,7 @@ fn part2(tiles: &HashMap<usize, Tile, FxBuildHasher>) -> usize {
     let mut grid: [[Tile; 12]; 12] = Default::default();
     grid[0][0] = left_corner;
 
-    let mut placed = HashSet::with_hasher(FxBuildHasher::default());
+    let mut placed = HashSet::new();
     placed.insert(corner.0);
 
     for i in 1..12 {

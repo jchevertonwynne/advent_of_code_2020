@@ -1,4 +1,3 @@
-use fxhash::FxBuildHasher;
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::time::{Duration, Instant};
@@ -19,7 +18,7 @@ enum InputLine {
 }
 
 fn p2_applier(
-    mem: &mut HashMap<usize, usize, FxBuildHasher>,
+    mem: &mut HashMap<usize, usize>,
     orig_addr: usize,
     addr: usize,
     ind: usize,
@@ -50,10 +49,8 @@ fn p2_applier(
 
 fn solve(input: &str) -> (usize, usize) {
     let mut mask = [Mask::Unset; 36];
-    let mut mem_p1: HashMap<usize, usize, FxBuildHasher> =
-        HashMap::with_hasher(FxBuildHasher::default());
-    let mut mem_p2: HashMap<usize, usize, FxBuildHasher> =
-        HashMap::with_hasher(FxBuildHasher::default());
+    let mut mem_p1: HashMap<usize, usize> = HashMap::new();
+    let mut mem_p2: HashMap<usize, usize> = HashMap::new();
     input
         .lines()
         .map(|line| {

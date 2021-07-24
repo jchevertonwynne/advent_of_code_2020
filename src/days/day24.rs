@@ -1,4 +1,3 @@
-use fxhash::FxBuildHasher;
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
@@ -84,8 +83,8 @@ fn load_paths(input: &str) -> Vec<Path> {
         .collect()
 }
 
-fn part1(paths: &[Path]) -> (usize, HashMap<(i16, i16), Tile, FxBuildHasher>) {
-    let mut seen = HashMap::with_capacity_and_hasher(paths.len(), FxBuildHasher::default());
+fn part1(paths: &[Path]) -> (usize, HashMap<(i16, i16), Tile>) {
+    let mut seen = HashMap::with_capacity(paths.len());
 
     for path in paths {
         let mut i = 0i16;
@@ -103,14 +102,14 @@ fn part1(paths: &[Path]) -> (usize, HashMap<(i16, i16), Tile, FxBuildHasher>) {
     (seen.values().filter(|t| **t == Tile::Black).count(), seen)
 }
 
-fn part2(seen: HashMap<(i16, i16), Tile, FxBuildHasher>) -> usize {
+fn part2(seen: HashMap<(i16, i16), Tile>) -> usize {
     let mut black_coords = seen
         .into_iter()
         .filter(|(_, colour)| *colour == Tile::Black)
         .map(|kv| kv.0)
-        .collect::<HashSet<(i16, i16), FxBuildHasher>>();
+        .collect::<HashSet<(i16, i16)>>();
 
-    let mut neighbours = HashMap::with_hasher(FxBuildHasher::default());
+    let mut neighbours = HashMap::new();
     for &(i, j) in &black_coords {
         HEX_OFFSETS
             .iter()
@@ -121,10 +120,8 @@ fn part2(seen: HashMap<(i16, i16), Tile, FxBuildHasher>) -> usize {
     }
 
     for _ in 0..100 {
-        let mut new_black =
-            HashSet::with_capacity_and_hasher(black_coords.len(), FxBuildHasher::default());
-        let mut new_neighbours =
-            HashMap::with_capacity_and_hasher(neighbours.len(), FxBuildHasher::default());
+        let mut new_black = HashSet::with_capacity(black_coords.len());
+        let mut new_neighbours = HashMap::with_capacity(neighbours.len());
         for (coord, black_neighbour_count) in neighbours {
             if black_neighbour_count == 2
                 || (black_neighbour_count == 1 && black_coords.contains(&coord))

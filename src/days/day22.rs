@@ -1,4 +1,3 @@
-use fxhash::FxBuildHasher;
 use std::collections::{HashSet, VecDeque};
 use std::time::{Duration, Instant};
 
@@ -62,8 +61,7 @@ fn recursive_combat_loop(
         return Player::Player1;
     }
 
-    let mut seen_stacks: HashSet<(VecDeque<u8>, VecDeque<u8>), FxBuildHasher> =
-        HashSet::with_hasher(FxBuildHasher::default());
+    let mut seen_stacks: HashSet<(VecDeque<u8>, VecDeque<u8>)> = HashSet::new();
 
     while !player_1.is_empty() && !player_2.is_empty() {
         let player1_deck = player_1.clone();

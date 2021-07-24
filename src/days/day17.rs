@@ -1,10 +1,9 @@
-use fxhash::FxBuildHasher;
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
 const INPUT: &str = include_str!("../../files/17.txt");
 
-fn load_world(input: &str) -> HashSet<(i8, i8, i8), FxBuildHasher> {
+fn load_world(input: &str) -> HashSet<(i8, i8, i8)> {
     input
         .lines()
         .enumerate()
@@ -19,9 +18,8 @@ fn load_world(input: &str) -> HashSet<(i8, i8, i8), FxBuildHasher> {
         .collect()
 }
 
-fn part1(mut world: HashSet<(i8, i8, i8), FxBuildHasher>) -> usize {
-    let mut neighbour_count: HashMap<(i8, i8, i8), usize, FxBuildHasher> =
-        HashMap::with_hasher(FxBuildHasher::default());
+fn part1(mut world: HashSet<(i8, i8, i8)>) -> usize {
+    let mut neighbour_count: HashMap<(i8, i8, i8), usize> = HashMap::new();
 
     for &tile in &world {
         for dx in -1..=1 {
@@ -38,9 +36,8 @@ fn part1(mut world: HashSet<(i8, i8, i8), FxBuildHasher>) -> usize {
     }
 
     for _ in 0..6 {
-        let mut next_world = HashSet::with_hasher(FxBuildHasher::default());
-        let mut next_neighbour_count: HashMap<(i8, i8, i8), usize, FxBuildHasher> =
-            HashMap::with_hasher(FxBuildHasher::default());
+        let mut next_world = HashSet::new();
+        let mut next_neighbour_count: HashMap<(i8, i8, i8), usize> = HashMap::new();
         for (&tile, &neighbours) in &neighbour_count {
             if neighbours == 3 || (neighbours == 2 && world.contains(&tile)) {
                 next_world.insert(tile);
@@ -64,46 +61,43 @@ fn part1(mut world: HashSet<(i8, i8, i8), FxBuildHasher>) -> usize {
     world.len()
 }
 
-fn part2(world: HashSet<(i8, i8, i8), FxBuildHasher>) -> usize {
+fn increment_neighbours(
+    tile: (i8, i8, i8, i8),
+    neighbour_count: &mut HashMap<(i8, i8, i8, i8), usize>,
+) {
+    (-1..=1)
+        .flat_map(|dx| (-1..=1).map(move |dy| (dx, dy)))
+        .flat_map(|(dx, dy)| (-1..=1).map(move |dz| (dx, dy, dz)))
+        .flat_map(|(dx, dy, dz)| (-1..=1).map(move |dw| (dx, dy, dz, dw)))
+        .filter(|&(x, y, z, w)| x != 0 || y != 0 || z != 0 || w != 0)
+        .for_each(|(dx, dy, dz, dw)| {
+            let tile: (i8, i8, i8, i8) = (tile.0 + dx, tile.1 + dy, tile.2 + dz, tile.3 + dw);
+            *neighbour_count.entry(tile).or_insert(0) += 1;
+        });
+}
+
+fn part2(world: HashSet<(i8, i8, i8)>) -> usize {
     let mut world = {
-        let mut w = HashSet::with_capacity_and_hasher(world.len(), FxBuildHasher::default());
+        let mut w = HashSet::with_capacity(world.len());
         for (i, j, k) in world {
             w.insert((i, j, k, 0));
         }
         w
     };
 
-    let mut neighbour_count: HashMap<(i8, i8, i8, i8), usize, FxBuildHasher> =
-        HashMap::with_hasher(FxBuildHasher::default());
+    let mut neighbour_count: HashMap<(i8, i8, i8, i8), usize> = HashMap::new();
 
-    for &tile in &world {
-        (-1..=1)
-            .flat_map(|dx| (-1..=1).map(move |dy| (dx, dy)))
-            .flat_map(|(dx, dy)| (-1..=1).map(move |dz| (dx, dy, dz)))
-            .flat_map(|(dx, dy, dz)| (-1..=1).map(move |dw| (dx, dy, dz, dw)))
-            .filter(|&(x, y, z, w)| x != 0 || y != 0 || z != 0 || w != 0)
-            .for_each(|(dx, dy, dz, dw)| {
-                let tile: (i8, i8, i8, i8) = (tile.0 + dx, tile.1 + dy, tile.2 + dz, tile.3 + dw);
-                *neighbour_count.entry(tile).or_insert(0) += 1;
-            });
-    }
+    world
+        .iter()
+        .for_each(|&t| increment_neighbours(t, &mut neighbour_count));
 
     for _ in 0..6 {
-        let mut next_world = HashSet::with_hasher(FxBuildHasher::default());
-        let mut next_neighbour_count: HashMap<(i8, i8, i8, i8), usize, FxBuildHasher> =
-            HashMap::with_hasher(FxBuildHasher::default());
+        let mut next_world = HashSet::new();
+        let mut next_neighbour_count: HashMap<(i8, i8, i8, i8), usize> = HashMap::new();
         for (&tile, &neighbours) in &neighbour_count {
             if neighbours == 3 || (neighbours == 2 && world.contains(&tile)) {
                 next_world.insert(tile);
-                (-1..=1)
-                    .flat_map(|dx| (-1..=1).map(move |dy| (dx, dy)))
-                    .flat_map(|(dx, dy)| (-1..=1).map(move |dz| (dx, dy, dz)))
-                    .flat_map(|(dx, dy, dz)| (-1..=1).map(move |dw| (dx, dy, dz, dw)))
-                    .filter(|&(x, y, z, w)| x != 0 || y != 0 || z != 0 || w != 0)
-                    .for_each(|(dx, dy, dz, dw)| {
-                        let neighbour = (tile.0 + dx, tile.1 + dy, tile.2 + dz, tile.3 + dw);
-                        *next_neighbour_count.entry(neighbour).or_insert(0) += 1;
-                    });
+                increment_neighbours(tile, &mut next_neighbour_count)
             }
         }
         neighbour_count = next_neighbour_count;
@@ -125,7 +119,6 @@ pub fn run() -> (String, String, Duration) {
 #[cfg(test)]
 mod tests {
     use crate::days::day17::{load_world, part1, part2, INPUT};
-    use fxhash::FxBuildHasher;
     use std::collections::HashSet;
 
     #[test]
@@ -143,7 +136,7 @@ mod tests {
         let world = load_world(s);
         let expected = vec![(0, 1, 0), (1, 2, 0), (2, 0, 0), (2, 1, 0), (2, 2, 0)]
             .into_iter()
-            .collect::<HashSet<_, FxBuildHasher>>();
+            .collect::<HashSet<_>>();
         assert_eq!(world, expected);
 
         assert_eq!(part1(world.clone()), 112);

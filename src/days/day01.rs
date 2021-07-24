@@ -34,11 +34,10 @@ fn part2(nums: &[usize]) -> usize {
     }
 
     nums.iter()
-        .filter_map(|&k| match places.get(GOAL - k) {
+        .find_map(|&k| match places.get(GOAL - k) {
             Some(&ij) if ij != 0 => Some(ij * k),
             _ => None,
         })
-        .next()
         .expect("should be an answer")
 }
 

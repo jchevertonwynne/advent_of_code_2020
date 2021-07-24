@@ -1,4 +1,3 @@
-use fxhash::FxBuildHasher;
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
@@ -28,8 +27,7 @@ fn load_foods(input: &str) -> Vec<Food> {
 }
 
 fn solve(foods: Vec<Food>) -> (usize, String) {
-    let mut known_allergen: HashMap<&str, &str, FxBuildHasher> =
-        HashMap::with_hasher(FxBuildHasher::default());
+    let mut known_allergen: HashMap<&str, &str> = HashMap::new();
 
     let mut working_foods = foods.to_vec();
 
