@@ -30,7 +30,7 @@ fn evaluate(line: &mut Chars, evaluator: fn(VecDeque<usize>, VecDeque<Op>) -> us
             '+' => ops.push_back(Op::Add),
             '(' => vals.push_back(evaluate(line, evaluator)),
             ')' => break,
-            c if ('0'..='9').contains(&c) => vals.push_back(c as usize - '0' as usize),
+            c if c.is_ascii_digit() => vals.push_back(c as usize - '0' as usize),
             _ => panic!("yooo"),
         }
     }

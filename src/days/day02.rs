@@ -95,15 +95,15 @@ mod tests {
     #[test]
     fn part2_tests() {
         let entry = Entry::try_from("1-3 a: abcde").expect("should be valid entry");
-        assert_eq!(entry.alt_valid(), true);
+        assert!(entry.alt_valid());
 
         let entry = Entry::try_from("1-3 a: zbade").expect("should be valid entry");
-        assert_eq!(entry.alt_valid(), true);
+        assert!(entry.alt_valid());
 
         let entry = Entry::try_from("1-3 b: cdefg").expect("should be valid entry");
-        assert_eq!(entry.alt_valid(), false);
+        assert!(!entry.alt_valid());
 
         let entry = Entry::try_from("2-9 c: ccccccccc").expect("should be valid entry");
-        assert_eq!(entry.alt_valid(), false)
+        assert!(!entry.alt_valid())
     }
 }

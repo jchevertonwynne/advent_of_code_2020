@@ -90,7 +90,7 @@ impl Record<'_> {
             && hex.len() == 6
             && hex
                 .chars()
-                .all(|c| ('0'..='9').contains(&c) || ('a'..='f').contains(&c))
+                .all(|c| c.is_ascii_digit() || ('a'..='f').contains(&c))
     }
 
     fn valid_eye_colour(&self) -> bool {
@@ -105,7 +105,7 @@ impl Record<'_> {
 
     fn valid_passport_id(&self) -> bool {
         match &self.passport_id {
-            Some(id) => id.len() == 9 && id.chars().all(|c| ('0'..='9').contains(&c)),
+            Some(id) => id.len() == 9 && id.chars().all(|c| c.is_ascii_digit()),
             None => false,
         }
     }
@@ -162,15 +162,15 @@ mod tests {
 
     #[test]
     fn part2_tests() {
-        let mut record = Record::default();
-        record.passport_id = Some("087499704");
-        record.height = Some("74in");
-        record.eye_colour = Some("grn");
-        record.issue_year = Some("2012");
-        record.expiration_year = Some("2030");
-        record.birth_year = Some("1980");
-        record.hair_colour = Some("#623a2f");
-
-        assert_eq!(record.valid_fields(), true)
+        let record = Record {
+            passport_id: Some("087499704"),
+            height: Some("74in"),
+            eye_colour: Some("grn"),
+            issue_year: Some("2012"),
+            expiration_year: Some("2030"),
+            birth_year: Some("1980"),
+            hair_colour: Some("#623a2f"),
+        };
+        assert!(record.valid_fields())
     }
 }

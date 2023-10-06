@@ -26,7 +26,6 @@ type LineOfSightOptions = ArrayVec<[(usize, usize); 8]>;
 #[derive(Clone, Debug)]
 struct World {
     floor: Vec<Vec<Tile>>,
-    first: bool,
     to_toggle: Vec<(usize, usize)>,
     line_of_sight: Vec<Vec<LineOfSightOptions>>,
 }
@@ -210,7 +209,6 @@ fn load_world(input: &str) -> World {
         .collect::<Vec<_>>();
     World {
         floor: contents,
-        first: true,
         to_toggle: Vec::new(),
         line_of_sight: Vec::new(),
     }

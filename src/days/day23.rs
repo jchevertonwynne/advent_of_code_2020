@@ -44,8 +44,8 @@ fn part1(cups: &[u32], turns: usize) -> usize {
         tiles[*n as usize] = *p;
     }
 
-    let first = *cups.first().unwrap() as u32;
-    let last = *cups.last().unwrap() as usize;
+    let first = *cups.first().unwrap();
+    let last = fun_name(cups) as usize;
 
     tiles[last] = first;
 
@@ -61,13 +61,17 @@ fn part1(cups: &[u32], turns: usize) -> usize {
     res
 }
 
+fn fun_name(cups: &[u32]) -> u32 {
+    *cups.last().unwrap()
+}
+
 fn part2(cups: &[u32]) -> usize {
     let mut tiles = (1..=1_000_001).collect::<Vec<_>>();
     for (p, n) in cups.iter().skip(1).zip(cups.iter()) {
         tiles[*n as usize] = *p;
     }
 
-    let first = *cups.first().unwrap() as u32;
+    let first = *cups.first().unwrap();
     let last = *cups.last().unwrap() as usize;
 
     tiles[1_000_000] = first;

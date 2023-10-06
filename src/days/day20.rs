@@ -264,11 +264,11 @@ fn part2(tiles: &HashMap<usize, Tile>) -> usize {
 
             let match_top = tiles_that_have_this_edge
                 .get(&top_edge)
-                .expect(&*format!("{:?}", top_edge));
+                .unwrap_or_else(|| panic!("{:?}", top_edge));
             let match_left = tiles_that_have_this_edge
                 .get(&left_edge)
-                .expect(&*format!("{:?}", left_edge));
-            let connecting_id = HashSet::intersection(&match_top, &match_left)
+                .unwrap_or_else(|| panic!("{:?}", left_edge));
+            let connecting_id = HashSet::intersection(match_top, match_left)
                 .next()
                 .expect("is one option");
 

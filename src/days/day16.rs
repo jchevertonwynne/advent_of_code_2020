@@ -153,7 +153,7 @@ fn reduce_to_unique<'a>(rows: &'a [Row], tickets: &'_ [&Ticket]) -> Vec<&'a str>
 }
 
 fn part2(rows: &[Row], valid: &[&Ticket], ticket: Ticket) -> usize {
-    let keys = reduce_to_unique(rows, &valid);
+    let keys = reduce_to_unique(rows, valid);
 
     keys.iter()
         .zip(ticket.iter())

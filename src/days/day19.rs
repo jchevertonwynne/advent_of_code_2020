@@ -24,7 +24,7 @@ impl Grammar {
         self.part_match(s).into_iter().any(|s| s.is_empty())
     }
 
-    fn part_match<'a, 'b>(&'a self, s: &'b str) -> Vec<&'b str> {
+    fn part_match<'b>(&self, s: &'b str) -> Vec<&'b str> {
         let mut res = Vec::new();
 
         if s.is_empty() {
@@ -112,7 +112,7 @@ fn load_input(input: &str) -> (Rc<Grammar>, Vec<&str>) {
             .find(|(ind, grammar)| {
                 grammar
                     .iter()
-                    .all(|g| g.iter().all(|i| done.contains_key(&i) || **ind == *i))
+                    .all(|g| g.iter().all(|i| done.contains_key(i) || **ind == *i))
             })
             .expect("should be a thing");
 
@@ -183,15 +183,15 @@ aaaabbb";
     fn test_valid_check() {
         let g = make_grammar();
 
-        assert_eq!(g.matches("hello"), false);
-        assert_eq!(g.matches("aaaabb"), true);
-        assert_eq!(g.matches("aaabab"), true);
-        assert_eq!(g.matches("abbabb"), true);
-        assert_eq!(g.matches("abbbab"), true);
-        assert_eq!(g.matches("aabaab"), true);
-        assert_eq!(g.matches("aabbbb"), true);
-        assert_eq!(g.matches("abaaab"), true);
-        assert_eq!(g.matches("ababbb"), true);
+        assert!(!g.matches("hello"));
+        assert!(g.matches("aaaabb"));
+        assert!(g.matches("aaabab"));
+        assert!(g.matches("abbabb"));
+        assert!(g.matches("abbbab"));
+        assert!(g.matches("aabaab"));
+        assert!(g.matches("aabbbb"));
+        assert!(g.matches("abaaab"));
+        assert!(g.matches("ababbb"));
     }
 
     fn make_grammar() -> Rc<Grammar> {

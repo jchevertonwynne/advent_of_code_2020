@@ -31,7 +31,7 @@ fn solve(foods: Vec<Food>) -> (usize, String) {
 
     let mut working_foods = foods.to_vec();
 
-    while (&working_foods).iter().any(|f| !f.allergens.is_empty()) {
+    while working_foods.iter().any(|f| !f.allergens.is_empty()) {
         let singular_allergens = working_foods
             .iter()
             .filter(|food| food.allergens.len() == 1)
